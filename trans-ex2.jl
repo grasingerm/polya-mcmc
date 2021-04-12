@@ -21,15 +21,15 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = Float64
-    default = 0.0
+    default = π / 2
   "--C1", "-a"
     help = "coefficient 1"
     arg_type = Float64
     default = 1.0
-  "--C2", "-b"
+  "--C2", "-n"
     help = "coefficient 2"
-    arg_type = Float64
-    default = 3.0
+    arg_type = Int
+    default = 4
   "--force", "-f"
     help = "applied force"
     arg_type = Float64
@@ -97,13 +97,13 @@ end
 function mcmc(nsteps::Int, pargs)
   kT = pargs["kT"];
   a = pargs["C1"];
-  b = pargs["C2"];
+  n = pargs["C2"];
   f = pargs["force"];
-  U = (x) -> a*x^4 - b*x^2 - f*x;
+  U = (x) -> a*cos(n*x) - f*x;
   x = pargs["x0"];
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
-  orbf = (pargs["orbit"]) ? x -> rand([-1; 1])*x : x -> x;
+  orbf = (pargs["orbit"]) ? x -> x + rand([-1; 0; 1])*(2*π / n) : x -> x;
 
   nacc = 0;
   xtotal = x;
@@ -121,7 +121,7 @@ function mcmc(nsteps::Int, pargs)
   start = time();
   last_update = start;
   for s = 1:nsteps
-    xtrial = orbf(x + rand(dx_dist));
+    xtrial = max(-π, min(orbf(x + rand(dx_dist)), π));
     Utrial = U(xtrial);
     if (Utrial < Ucurr) || (rand() <= exp(-(Utrial - Ucurr) / kT) )
       x = xtrial;
@@ -139,8 +139,8 @@ function mcmc(nsteps::Int, pargs)
       push!(rolls, s);
       push!(xrolling, xtotal / s);
       push!(Urolling, Utotal / s);
-      push!(xstd_rolling, sqrt(x2total / s - (xtotal / s)^2));
-      push!(Ustd_rolling, sqrt(U2total / s - (Utotal / s)^2));
+      push!(xstd_rolling, sqrt(max(0.0, x2total / s - (xtotal / s)^2)));
+      push!(Ustd_rolling, sqrt(max(0.0, U2total / s - (Utotal / s)^2)));
     end
 
     if time() - last_update > pargs["update-freq"]
