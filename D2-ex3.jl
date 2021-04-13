@@ -20,27 +20,27 @@ s = ArgParseSettings();
     default = convert(Int, 1e5)
   "--x0", "-X"
     help = "initial configuration"
-    arg_type = Float64
-    default = π / 2
-  "--C1", "-a"
-    help = "coefficient 1"
+    arg_type = String
+    default = "[0.0; 0.0]"
+  "--C1", "-k"
+    help = "spring stiffness"
     arg_type = Float64
     default = 1.0
-  "--C2", "-n"
-    help = "coefficient 2"
-    arg_type = Int
-    default = 4
+  "--C2", "-l"
+    help = "aspect ratio"
+    arg_type = Float64
+    default = 4.0
   "--force", "-f"
     help = "applied force"
-    arg_type = Float64
-    default = 0.0
+    arg_type = String
+    default = "[0.0; 0.0]"
   "--orbit"
     help = "exploit underlying discrete symmetry by taking orbits during trial moves"
     action = :store_true
   "--dx", "-x"
     help = "maximum step length"
     arg_type = Float64;
-    default = 1.0;
+    default = 0.25;
   "--step-adjust-lb", "-L"
     help = "adjust step sizes if acc. ratio below this threshold"
     arg_type = Float64
@@ -95,24 +95,40 @@ else
 end
 
 function mcmc(nsteps::Int, pargs)
+  basis_vectors = [1 0; 0 1];
   kT = pargs["kT"];
-  a = pargs["C1"];
-  n = pargs["C2"];
-  f = pargs["force"];
-  U = (x) -> a*cos(n*x) - f*x;
-  x = pargs["x0"];
+  k = pargs["C1"];
+  ℓ = pargs["C2"];
+  f = eval(Meta.parse(pargs["force"]));
+  U = (x) -> k*( (x[1]-ℓ/2)^2 + (x[1]+ℓ/2)^2 + 
+                 (x[2]-1/2)^2 + (x[2]+1/2)^2   );
+  x = eval(Meta.parse(pargs["x0"]));
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
-  orbf = (pargs["orbit"]) ? x -> x + rand([-1; 0; 1])*(2*π / n) : x -> x;
+  orbf! = if (pargs["orbit"])
+    x -> begin;
+      choice = rand(1:4);
+      # choice == 4 is the identity
+      if choice == 1
+        x[1] = -x[1];
+      elseif choice == 2
+        x[2] = -x[2];
+      elseif choice == 3
+        x[:] = -x;
+      end
+    end
+  else
+    x -> begin; end;
+  end
 
   nacc = 0;
   xtotal = x;
-  xrolling = Float64[];
+  xrolling = Vector{Float64}[];
   Ucurr = U(x);
   Utotal = Ucurr;
   Urolling = Float64[];
-  x2total = x*x;
-  xstd_rolling = Float64[];
+  x2total = x .* x;
+  xstd_rolling = Vector{Float64}[];
   U2total = Ucurr*Ucurr;
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
@@ -121,7 +137,10 @@ function mcmc(nsteps::Int, pargs)
   start = time();
   last_update = start;
   for s = 1:nsteps
-    xtrial = max(-π, min(orbf(x + rand(dx_dist)), π));
+    xtrial = x + rand(dx_dist)*view(basis_vectors, :, rand(1:2));
+    orbf!(xtrial);
+    xtrial[1] = max(-ℓ/2, min(ℓ/2, xtrial[1]));
+    xtrial[2] = max(-1/2, min(1/2, xtrial[2]));
     Utrial = U(xtrial);
     if (Utrial < Ucurr) || (rand() <= exp(-(Utrial - Ucurr) / kT) )
       x = xtrial;
@@ -131,7 +150,7 @@ function mcmc(nsteps::Int, pargs)
 
     xtotal += x;
     Utotal += Ucurr;
-    x2total += x*x;
+    x2total += x .* x;
     U2total += Ucurr*Ucurr;
     ar = nacc / s;
 
@@ -139,7 +158,10 @@ function mcmc(nsteps::Int, pargs)
       push!(rolls, s);
       push!(xrolling, xtotal / s);
       push!(Urolling, Utotal / s);
-      push!(xstd_rolling, sqrt(max(0.0, x2total / s - (xtotal / s)^2)));
+      push!(
+            xstd_rolling, 
+            map(i -> sqrt(max(0.0, x2total[i] / s - (xtotal[i] / s)^2)), 1:2)
+           );
       push!(Ustd_rolling, sqrt(max(0.0, U2total / s - (Utotal / s)^2)));
     end
 
@@ -180,9 +202,21 @@ pargs["orbit"] = false;
 pargs["orbit"] = true;
 @show result_polya = mcmc(pargs["num-steps"], pargs);
 
-p = plot(result_std[:rolls], result_std[:xrolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle x \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:xrolling]; label="polya");
+@show xrolling_std = transpose(hcat(result_std[:xrolling]...));
+@show size(xrolling_std);
+p = plot(result_std[:rolls], xrolling_std[:, 1]; label="std mcmc",
+         xlabel = "step", ylabel = "\$\\langle x_1 \\rangle\$");
+@show xrolling_polya = transpose(hcat(result_polya[:xrolling]...));
+@show size(xrolling_polya);
+plot!(result_polya[:rolls], xrolling_polya[:, 1]; label="polya");
+display(p);
+println();
+println("Press RETURN to exit...");
+readline();
+
+p = plot(result_std[:rolls], xrolling_std[:, 2]; label="std mcmc",
+         xlabel = "step", ylabel = "\$\\langle x_2 \\rangle\$");
+plot!(result_polya[:rolls], xrolling_polya[:, 2]; label="polya");
 display(p);
 println();
 println("Press RETURN to exit...");

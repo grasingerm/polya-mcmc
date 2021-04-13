@@ -10,7 +10,7 @@ using Plots;
 
 s = ArgParseSettings();
 @add_arg_table! s begin
-  "--kT", "-k"
+  "--kT", "-T"
     help = "dimensionless temperature"
     arg_type = Float64
     default = 1.0
