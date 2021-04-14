@@ -101,7 +101,7 @@ function mcmc(nsteps::Int, pargs)
   ℓ = pargs["C2"];
   f = eval(Meta.parse(pargs["force"]));
   U = (x) -> k*( (x[1]-ℓ/2)^2 + (x[1]+ℓ/2)^2 + 
-                 (x[2]-1/2)^2 + (x[2]+1/2)^2   );
+                 (x[2]-1/2)^2 + (x[2]+1/2)^2   ) - dot(f, x);
   x = eval(Meta.parse(pargs["x0"]));
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
