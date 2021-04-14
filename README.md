@@ -1,5 +1,5 @@
 # polya-mcmc
-## Symmetry, finite groups, and Markov chain Monte Carlo methods
+Symmetry, finite groups, and Markov chain Monte Carlo methods.
 
 # Introduction
 Conceptually, the basic idea here is to leverage discrete symmetries, 
@@ -27,9 +27,9 @@ This example is a 1 DOF system with discrete translational symmetries.
 This example is a 2 DOF system with D<sub>2</sub> symmetry.
 
 # TODO
-- [] Plot convergence rates using something more publication friendly--like gnuplot
-- [] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
-- [] Implement noninteracting polymer chain with orientational energy
-- [] Implement interacting polymer chain with orientational energy; use clustering?
-- [] Question: will clustering type algorithms work for fluid--solid transitions? There must be something in the literature
-- [] Write descriptions for each of the examples; add page numbers when (if?) manuscript is ever published/posted
+- [ ] Plot convergence rates using something more publication friendly--like gnuplot
+- [ ] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
+- [ ] Implement noninteracting polymer chain with orientational energy
+- [ ] Implement interacting polymer chain with orientational energy; use clustering?
+- [ ] Question: will clustering type algorithms work for fluid--solid transitions? There must be something in the literature
+- [ ] Write descriptions for each of the examples; add page numbers when (if?) manuscript is ever published/posted
