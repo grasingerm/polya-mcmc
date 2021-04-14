@@ -1,7 +1,7 @@
 # polya-mcmc
 Symmetry, finite groups, and Markov chain Monte Carlo methods.
 
-# Introduction
+## Introduction
 Conceptually, the basic idea here is to leverage discrete symmetries, 
 or Hamiltonians which have a kind of weak discrete symmetry, in order to perform 
 efficient Markov cain Monte Carlo sampling of energy landscapes with multiple,
@@ -16,17 +16,17 @@ competing with any of them and couldn't even if I tried. Instead, my hope is to
 develop and illustrate principles which can be incorporated into better, 
 more practical, and more mature MCMC codes.
 
-# Examples
-## refl-ex1.jl
+## Examples
+### refl-ex1.jl
 This example is a 1 DOF system with a reflection symmetry.
 
-## trans-ex2.jl
+### trans-ex2.jl
 This example is a 1 DOF system with discrete translational symmetries.
 
-## D2-ex3.jl
+### D2-ex3.jl
 This example is a 2 DOF system with D<sub>2</sub> symmetry.
 
-# TODO
+## TODO
 - [ ] Plot convergence rates using something more publication friendly--like gnuplot
 - [ ] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
 - [ ] Implement noninteracting polymer chain with orientational energy
