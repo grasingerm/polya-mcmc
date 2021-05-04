@@ -1,27 +1,7 @@
-using ArgParse;
-using Distributions;
-using LinearAlgebra;
-using Logging;
-using DelimitedFiles;
-using ProfileView;
-using DecFP;
-using Quadmath;
-using Plots;
+include(joinpath(@__DIR__, "src", "bp.jl"));
 
 s = ArgParseSettings();
 @add_arg_table! s begin
-  "--kT", "-T"
-    help = "dimensionless temperature"
-    arg_type = Float64
-    default = 1.0
-  "--num-steps", "-N"
-    help = "number of steps"
-    arg_type = Int
-    default = convert(Int, 1e5)
-  "--x0", "-X"
-    help = "initial configuration"
-    arg_type = Float64
-    default = 0.0
   "--C1", "-a"
     help = "coefficient 1"
     arg_type = Float64
@@ -30,71 +10,22 @@ s = ArgParseSettings();
     help = "coefficient 2"
     arg_type = Float64
     default = 3.0
+  "--x0", "-X"
+    help = "initial configuration"
+    arg_type = Float64
+    default = 0.0
   "--force", "-f"
     help = "applied force"
     arg_type = Float64
     default = 0.0
-  "--orbit"
-    help = "exploit underlying discrete symmetry by taking orbits during trial moves"
-    action = :store_true
-  "--dx", "-x"
-    help = "maximum step length"
-    arg_type = Float64;
-    default = 1.0;
-  "--step-adjust-lb", "-L"
-    help = "adjust step sizes if acc. ratio below this threshold"
-    arg_type = Float64
-    default = 0.15
-  "--step-adjust-ub", "-U"
-    help = "adjust step sizes if acc. ratio above this threshold"
-    arg_type = Float64
-    default = 0.55
-  "--step-adjust-scale", "-A"
-    help = "scale factor for adjusting step sizes (> 1.0)"
-    arg_type = Float64
-    default = 1.1
-  "--steps-per-adjust", "-S"
-    help = "steps between step size adjustments"
-    arg_type = Int
-    default = 2500
-#  "--acc", "-a"
-#    help = "acceptance function (metropolis|kawasaki)"
-#    arg_type = String
-#    default = "metropolis"
-  "--update-freq"
-    help = "update frequency (seconds)"
-    arg_type = Float64;
-    default = 15.0;
-  "--verbose", "-v"
-    help = "verbosity level: 0-nothing, 1-errors, 2-warnings, 3-info"
-    arg_type = Int
-    default = 3
-  "--stepout", "-s"
-    help = "steps between storing rolling averages"
-    arg_type = Int
-    default = 500
-  "--numeric-type"
-    help = "numerical data type for averaging (float64|float128|dec128|big)"
-    arg_type = String
-    default = "float64"
-  "--profile", "-Z"
-    help = "profile the program"
-    action = :store_true
 end
 
-pargs = parse_args(s);
+default_options = src_include("default_options.jl");
+ArgParse.import_settings!(s, default_options);
 
-if pargs["verbose"] == 3
-  global_logger(ConsoleLogger(stderr, Logging.Info));
-elseif pargs["verbose"] == 2
-  global_logger(ConsoleLogger(stderr, Logging.Warn));
-elseif pargs["verbose"] == 1
-  global_logger(ConsoleLogger(stderr, Logging.Error));
-else
-  global_logger(Logging.NullLogger());
-end
+pargs = src_include("parse_args.jl");
 
-function mcmc(nsteps::Int, pargs)
+@everywhere function mcmc(nsteps::Int, pargs)
   kT = pargs["kT"];
   a = pargs["C1"];
   b = pargs["C2"];
@@ -174,11 +105,7 @@ function mcmc(nsteps::Int, pargs)
 
 end
 
-pargs["orbit"] = false;
-@show result_std = mcmc(pargs["num-steps"], pargs);
-
-pargs["orbit"] = true;
-@show result_polya = mcmc(pargs["num-steps"], pargs);
+@time result_std, result_polya = src_include("wrap_main_runs.jl");
 
 p = plot(result_std[:rolls], result_std[:xrolling]; label="std mcmc",
          xlabel = "step", ylabel = "\$\\langle x \\rangle\$");

@@ -26,6 +26,10 @@ This example is a 1 DOF system with discrete translational symmetries.
 ### D2-ex3.jl
 This example is a 2 DOF system with D<sub>2</sub> symmetry.
 
+### rosenbrock-ex4.jl
+This example is a toy 2 DOF system which has a notoriously difficult energy landscape.
+It has a "weak" x &#8594; -x symmetry, which is strictly symmetric when a &#8594; 0.
+
 ## TODO
 - [ ] Plot convergence rates using something more publication friendly--like gnuplot
 - [ ] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
