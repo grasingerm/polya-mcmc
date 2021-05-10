@@ -1,11 +1,12 @@
 include(joinpath(@__DIR__, "src", "bp.jl"));
+using Cubature;
 
 s = ArgParseSettings();
 @add_arg_table! s begin
   "--x0", "-X"
-    help = "initial configuration"
-    arg_type = Float64
-    default = π / 2
+    help = "initial configuration (Function, i.e. rand)"
+    arg_type = String
+    default = "() -> π / 2"
   "--C1", "-a"
     help = "coefficient 1"
     arg_type = Float64
@@ -22,16 +23,15 @@ end
 
 default_options = src_include("default_options.jl");
 ArgParse.import_settings!(s, default_options);
-
 pargs = src_include("parse_args.jl");
 
-@everywhere function mcmc(nsteps::Int, pargs)
+@everywhere function mcmc(nsteps::Int, pargs::Dict)
   kT = pargs["kT"];
   a = pargs["C1"];
   n = pargs["C2"];
   f = pargs["force"];
   U = (x) -> a*cos(n*x) - f*x;
-  x = pargs["x0"];
+  x = pargs["x0"]();
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> x + rand([-1; 0; 1])*(2*π / n) : x -> x;
@@ -105,20 +105,45 @@ pargs = src_include("parse_args.jl");
 
 end
 
-@time result_std, result_polya = src_include("wrap_main_runs.jl");
+kT = pargs["kT"];
+a = pargs["C1"];
+n = pargs["C2"];
+f = pargs["force"];
+U = (x) -> a*cos(n*x) - f*x;
+Z_quad, err = hquadrature(x -> exp(-U(x)/kT), -π, π);
+x_quad, err = hquadrature(x -> x * exp(-U(x)/kT) / Z_quad, -π, π);
+U_quad, err = hquadrature(x -> U(x) * exp(-U(x)/kT) / Z_quad, -π, π);
+x2_quad, err = hquadrature(x -> x*x * exp(-U(x)/kT) / Z_quad, -π, π);
+U2_quad, err = hquadrature(x -> (U(x))^2 * exp(-U(x)/kT) / Z_quad, -π, π);
 
-p = plot(result_std[:rolls], result_std[:xrolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle x \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:xrolling]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+@info Z_quad, x_quad, U_quad, x2_quad, U2_quad;
 
-p = plot(result_std[:rolls], result_std[:Urolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle U \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:Urolling]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+src_include("wrap_main_runs.jl");
+results_std, results_polya = wrap_main_runs(pargs);
+L1_error_std, L1_error_polya = post_process_main_runs(results_std,
+                                                      results_polya,
+                                                      pargs;
+                                                      xrolling=x_quad,
+                                                      Urolling=U_quad);
+
+if pargs["do-plots"]
+  p = plot(results_std[1][:rolls], L1_error_std[:xrolling]; label="std mcmc",
+           xlabel = "step", 
+           ylabel = "\\left|\\left|\$\\langle x \\rangle - x_q\\right|\\right|\$");
+  plot!(results_polya[1][:rolls], L1_error_polya[:xrolling]; label="polya");
+  savefig(p, joinpath(pargs["outdir"], "x_convergence.pdf"));
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+
+  p = plot(results_std[1][:rolls], L1_error_std[:Urolling]; label="std mcmc",
+           xlabel = "step", 
+           ylabel = "\\left|\\left|\$\\langle x \\rangle - x_q\\right|\\right|\$");
+  plot!(results_polya[1][:rolls], L1_error_polya[:Urolling]; label="polya");
+  savefig(p, joinpath(pargs["outdir"], "U_convergence.pdf"));
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+end

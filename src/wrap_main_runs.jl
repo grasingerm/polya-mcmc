@@ -9,21 +9,44 @@
   return ret;
 end
 
-pargs["orbit"] = false;
-@show result_std = pmap(i -> mcmc(pargs["num-steps"], pargs),
-                        1:pargs["num-runs"]);
+@everywhere function wrap_main_runs(pargs::Dict)
+  nsteps, nruns = pargs["num-steps"], pargs["num-runs"];
+  
+  pargs["orbit"] = false;
+  results_std = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
 
-pargs["orbit"] = true;
-@show result_polya = pmap(i -> mcmc(pargs["num-steps"], pargs),
-                          1:pargs["num-runs"]);
+  pargs["orbit"] = true;
+  results_polya = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
 
-#=
-for (k, v) in result_std
-  result_std[k] = v / pargs["num-runs"];
+  return results_std, results_polya;
 end
-for (k, v) in result_polya
-  result_polya[k] = v / pargs["num-runs"];
-end
-=#
 
-result_std, result_polya
+function post_process_main_runs(results_std, results_polya, pargs; kwargs...)
+  L1_error_std = Dict();
+  L1_error_polya = Dict();
+  for (k, v) in kwargs
+    L1_error_std[k] = sum(map(i -> begin;
+                        map(x -> abs(x - v), results_std[i][k])
+                      end, 1:length(results_std))) / length(results_std);
+    L1_error_polya[k] = sum(map(i -> begin;
+                          map(x -> abs(x - v), results_polya[i][k])
+                        end, 1:length(results_polya))) / length(results_polya);
+  end
+  outdir = pargs["outdir"];
+  mkpath(outdir);
+  if pargs["do-csvs"]
+    for k in keys(results_std[1])
+      writedlm(
+               joinpath(outdir, "$(k)_std.csv"),
+               hcat(map(i -> results_std[i][k], 1:length(results_std))...),
+               ','
+              );
+      writedlm(
+               joinpath(outdir, "$(k)_polya.csv"),
+               hcat(map(i -> results_polya[i][k], 1:length(results_polya))...),
+               ','
+              );
+    end
+  end
+  return L1_error_std, L1_error_polya;
+end

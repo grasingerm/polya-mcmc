@@ -13,7 +13,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "[0.0; 0.0]"
+    default = "() -> [0.0; 0.0]"
   "--force", "-f"
     help = "applied force"
     arg_type = String
@@ -22,18 +22,18 @@ end
 
 default_options = src_include("default_options.jl");
 ArgParse.import_settings!(s, default_options);
-
 pargs = src_include("parse_args.jl");
+pargs["force"] = eval(Meta.parse(pargs["force"]));
 
 @everywhere function mcmc(nsteps::Int, pargs)
   basis_vectors = [1 0; 0 1];
   kT = pargs["kT"];
   k = pargs["C1"];
   ℓ = pargs["C2"];
-  f = eval(Meta.parse(pargs["force"]));
+  f = pargs["force"];
   U = (x) -> k*( (x[1]-ℓ/2)^2 + (x[1]+ℓ/2)^2 + 
                  (x[2]-1/2)^2 + (x[2]+1/2)^2   ) - dot(f, x);
-  x = eval(Meta.parse(pargs["x0"]));
+  x = pargs["x0"]();
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf! = if (pargs["orbit"])
@@ -127,32 +127,36 @@ pargs = src_include("parse_args.jl");
 
 end
 
-@time result_std, result_polya = src_include("wrap_main_runs.jl");
+src_include("wrap_main_runs.jl");
 
-@show xrolling_std = transpose(hcat(result_std[:xrolling]...));
-@show size(xrolling_std);
-p = plot(result_std[:rolls], xrolling_std[:, 1]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle x_1 \\rangle\$");
-@show xrolling_polya = transpose(hcat(result_polya[:xrolling]...));
-@show size(xrolling_polya);
-plot!(result_polya[:rolls], xrolling_polya[:, 1]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+results_std, results_polya = wrap_main_runs(pargs);
+post_process_main_runs(results_std, results_polya, pargs)
 
-p = plot(result_std[:rolls], xrolling_std[:, 2]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle x_2 \\rangle\$");
-plot!(result_polya[:rolls], xrolling_polya[:, 2]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+if pargs["do-plots"]
+  idx = rand(1:pargs["num-runs"]);
+  xrolling_std = transpose(hcat(results_std[idx][:xrolling]...));
+  p = plot(results_std[idx][:rolls], xrolling_std[:, 1]; label="std mcmc",
+           xlabel = "step", ylabel = "\$\\langle x_1 \\rangle\$");
+  xrolling_polya = transpose(hcat(results_polya[idx][:xrolling]...));
+  plot!(results_polya[idx][:rolls], xrolling_polya[:, 1]; label="polya");
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
 
-p = plot(result_std[:rolls], result_std[:Urolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle U \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:Urolling]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+  p = plot(results_std[idx][:rolls], xrolling_std[:, 2]; label="std mcmc",
+           xlabel = "step", ylabel = "\$\\langle x_2 \\rangle\$");
+  plot!(results_polya[idx][:rolls], xrolling_polya[:, 2]; label="polya");
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+
+  p = plot(results_std[idx][:rolls], results_std[idx][:Urolling]; 
+           label="std mcmc", xlabel = "step", ylabel = "\$\\langle U \\rangle\$");
+  plot!(results_polya[idx][:rolls], results_polya[idx][:Urolling]; label="polya");
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+end

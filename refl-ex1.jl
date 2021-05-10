@@ -12,8 +12,8 @@ s = ArgParseSettings();
     default = 3.0
   "--x0", "-X"
     help = "initial configuration"
-    arg_type = Float64
-    default = 0.0
+    arg_type = String
+    default = "() -> 0.0"
   "--force", "-f"
     help = "applied force"
     arg_type = Float64
@@ -31,7 +31,7 @@ pargs = src_include("parse_args.jl");
   b = pargs["C2"];
   f = pargs["force"];
   U = (x) -> a*x^4 - b*x^2 - f*x;
-  x = pargs["x0"];
+  x = pargs["x0"]();
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> rand([-1; 1])*x : x -> x;
@@ -105,20 +105,26 @@ pargs = src_include("parse_args.jl");
 
 end
 
-@time result_std, result_polya = src_include("wrap_main_runs.jl");
+src_include("wrap_main_runs.jl");
 
-p = plot(result_std[:rolls], result_std[:xrolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle x \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:xrolling]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+results_std, results_polya = wrap_main_runs(pargs);
+post_process_main_runs(results_std, results_polya, pargs)
 
-p = plot(result_std[:rolls], result_std[:Urolling]; label="std mcmc",
-         xlabel = "step", ylabel = "\$\\langle U \\rangle\$");
-plot!(result_polya[:rolls], result_polya[:Urolling]; label="polya");
-display(p);
-println();
-println("Press RETURN to exit...");
-readline();
+if pargs["do-plots"]
+  idx = rand(1:pargs["num-runs"]);
+  p = plot(results_std[idx][:rolls], results_std[idx][:xrolling]; label="std mcmc",
+           xlabel = "step", ylabel = "\$\\langle x \\rangle\$");
+  plot!(results_polya[idx][:rolls], results_polya[idx][:xrolling]; label="polya");
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+
+  p = plot(results_std[idx][:rolls], results_std[idx][:Urolling]; label="std mcmc",
+           xlabel = "step", ylabel = "\$\\langle U \\rangle\$");
+  plot!(results_polya[idx][:rolls], results_polya[idx][:Urolling]; label="polya");
+  display(p);
+  println();
+  println("Press RETURN to exit...");
+  readline();
+end

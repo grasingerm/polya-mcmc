@@ -16,6 +16,12 @@ default_settings = ArgParseSettings();
     help = "output directory"
     arg_type = String
     default = "."
+  "--do-plots", "-P"
+    help = "create interesting plots"
+    action = :store_true
+  "--do-csvs", "-C"
+    help = "create csv files of data"
+    action = :store_true
   "--orbit"
     help = "exploit underlying discrete symmetry by taking orbits during trial moves"
     action = :store_true

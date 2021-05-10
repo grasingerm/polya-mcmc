@@ -1,8 +1,9 @@
-using ArgParse;
-using ProfileView;
-using DelimitedFiles;
-using Plots;
 using Distributed;
+using ProfileView;
+@everywhere using DelimitedFiles;
+@everywhere using Plots;
+@everywhere using ArgParse;
+@everywhere using ParallelDataTransfer;
 @everywhere using Distributions;
 @everywhere using LinearAlgebra;
 @everywhere using Logging;

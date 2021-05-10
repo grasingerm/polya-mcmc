@@ -16,6 +16,15 @@ competing with any of them and couldn't even if I tried. Instead, my hope is to
 develop and illustrate principles which can be incorporated into better, 
 more practical, and more mature MCMC codes.
 
+## Getting started
+This research code is written in the [julia language!](https://julialang.org).
+Once julia is installed, you can install the modules that this code depends on by
+running
+
+    julia install_dependencies.jl
+
+in the root directory of this project.
+
 ## Examples
 ### refl-ex1.jl
 This example is a 1 DOF system with a reflection symmetry.
