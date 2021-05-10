@@ -17,7 +17,7 @@ develop and illustrate principles which can be incorporated into better,
 more practical, and more mature MCMC codes.
 
 ## Getting started
-This research code is written in the [julia language!](https://julialang.org).
+This research code is written in the [julia language](https://julialang.org).
 Once julia is installed, you can install the modules that this code depends on by
 running
 
