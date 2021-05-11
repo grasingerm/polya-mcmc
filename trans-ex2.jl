@@ -6,7 +6,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration (Function, i.e. rand)"
     arg_type = String
-    default = "() -> π / 2"
+    default = "(::Any) -> 0.0"
   "--C1", "-a"
     help = "coefficient 1"
     arg_type = Float64
@@ -31,7 +31,7 @@ pargs = src_include("parse_args.jl");
   n = pargs["C2"];
   f = pargs["force"];
   U = (x) -> a*cos(n*x) - f*x;
-  x = pargs["x0"]();
+  x = pargs["x0"](pargs);
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> x + rand([-1; 0; 1])*(2*π / n) : x -> x;
@@ -43,8 +43,10 @@ pargs = src_include("parse_args.jl");
   Utotal = Ucurr;
   Urolling = Float64[];
   x2total = x*x;
+  x2rolling = Float64[];
   xstd_rolling = Float64[];
   U2total = Ucurr*Ucurr;
+  U2rolling = Float64[];
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
   rolls = Int[];
@@ -70,6 +72,8 @@ pargs = src_include("parse_args.jl");
       push!(rolls, s);
       push!(xrolling, xtotal / s);
       push!(Urolling, Utotal / s);
+      push!(x2rolling, x2total / s);
+      push!(U2rolling, U2total / s);
       push!(xstd_rolling, sqrt(max(0.0, x2total / s - (xtotal / s)^2)));
       push!(Ustd_rolling, sqrt(max(0.0, U2total / s - (Utotal / s)^2)));
     end
@@ -100,21 +104,23 @@ pargs = src_include("parse_args.jl");
   return Dict(:xavg => xtotal / nsteps, :Uavg => Utotal / nsteps,
               :xrolling => xrolling, :Urolling => Urolling,
               :x2avg => x2total / nsteps, :U2avg => U2total / nsteps,
+              :x2rolling => x2rolling, :Urolling => U2rolling,
               :xstd_rolling => xstd_rolling, :Ustd_rolling => Ustd_rolling,
               :rolls => rolls, :ar => nacc / nsteps);
 
 end
 
+maxevals = convert(Int, 1e6);
 kT = pargs["kT"];
 a = pargs["C1"];
 n = pargs["C2"];
 f = pargs["force"];
 U = (x) -> a*cos(n*x) - f*x;
-Z_quad, err = hquadrature(x -> exp(-U(x)/kT), -π, π);
-x_quad, err = hquadrature(x -> x * exp(-U(x)/kT) / Z_quad, -π, π);
-U_quad, err = hquadrature(x -> U(x) * exp(-U(x)/kT) / Z_quad, -π, π);
-x2_quad, err = hquadrature(x -> x*x * exp(-U(x)/kT) / Z_quad, -π, π);
-U2_quad, err = hquadrature(x -> (U(x))^2 * exp(-U(x)/kT) / Z_quad, -π, π);
+Z_quad, err = pquadrature(x -> exp(-U(x)/kT), -π, π; maxevals=maxevals);
+x_quad, err = pquadrature(x -> x * exp(-U(x)/kT) / Z_quad, -π, π; maxevals=maxevals);
+U_quad, err = pquadrature(x -> U(x) * exp(-U(x)/kT) / Z_quad, -π, π; maxevals=maxevals);
+x2_quad, err = pquadrature(x -> x*x * exp(-U(x)/kT) / Z_quad, -π, π; maxevals=maxevals);
+U2_quad, err = pquadrature(x -> (U(x))^2 * exp(-U(x)/kT) / Z_quad, -π, π; maxevals=maxevals);
 
 @info Z_quad, x_quad, U_quad, x2_quad, U2_quad;
 

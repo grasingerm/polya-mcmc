@@ -11,12 +11,16 @@ end
 
 @everywhere function wrap_main_runs(pargs::Dict)
   nsteps, nruns = pargs["num-steps"], pargs["num-runs"];
-  
-  pargs["orbit"] = false;
-  results_std = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
+ 
+  elapsed = @elapsed begin;
+    pargs["orbit"] = false;
+    results_std = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
 
-  pargs["orbit"] = true;
-  results_polya = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
+    pargs["orbit"] = true;
+    results_polya = pmap((::Int) -> mcmc(nsteps, pargs), 1:nruns);
+  end
+
+  @info "Simulation time: $elapsed";
 
   return results_std, results_polya;
 end

@@ -13,7 +13,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "() -> 0.0"
+    default = "(::Any) -> 0.0"
   "--force", "-f"
     help = "applied force"
     arg_type = Float64
@@ -31,7 +31,7 @@ pargs = src_include("parse_args.jl");
   b = pargs["C2"];
   f = pargs["force"];
   U = (x) -> a*x^4 - b*x^2 - f*x;
-  x = pargs["x0"]();
+  x = pargs["x0"](pargs);
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> rand([-1; 1])*x : x -> x;
@@ -43,8 +43,10 @@ pargs = src_include("parse_args.jl");
   Utotal = Ucurr;
   Urolling = Float64[];
   x2total = x*x;
+  x2rolling = Float64[];
   xstd_rolling = Float64[];
   U2total = Ucurr*Ucurr;
+  U2rolling = Float64[];
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
   rolls = Int[];
@@ -70,6 +72,8 @@ pargs = src_include("parse_args.jl");
       push!(rolls, s);
       push!(xrolling, xtotal / s);
       push!(Urolling, Utotal / s);
+      push!(x2rolling, x2total / s);
+      push!(U2rolling, U2total / s);
       push!(xstd_rolling, sqrt(max(0.0, x2total / s - (xtotal / s)^2)));
       push!(Ustd_rolling, sqrt(max(0.0, U2total / s - (Utotal / s)^2)));
     end
@@ -100,6 +104,7 @@ pargs = src_include("parse_args.jl");
   return Dict(:xavg => xtotal / nsteps, :Uavg => Utotal / nsteps,
               :xrolling => xrolling, :Urolling => Urolling,
               :x2avg => x2total / nsteps, :U2avg => U2total / nsteps,
+              :x2rolling => x2rolling, :Urolling => U2rolling,
               :xstd_rolling => xstd_rolling, :Ustd_rolling => Ustd_rolling,
               :rolls => rolls, :ar => nacc / nsteps);
 

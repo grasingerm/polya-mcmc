@@ -13,7 +13,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "() -> [0.0; 0.0]"
+    default = "(::Any) -> [0.0; 0.0]"
   "--force", "-f"
     help = "applied force"
     arg_type = String
@@ -33,7 +33,7 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
   f = pargs["force"];
   U = (x) -> k*( (x[1]-ℓ/2)^2 + (x[1]+ℓ/2)^2 + 
                  (x[2]-1/2)^2 + (x[2]+1/2)^2   ) - dot(f, x);
-  x = pargs["x0"]();
+  x = pargs["x0"](pargs);
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf! = if (pargs["orbit"])
@@ -59,8 +59,10 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
   Utotal = Ucurr;
   Urolling = Float64[];
   x2total = x .* x;
+  x2rolling = Vector{Float64}[];
   xstd_rolling = Vector{Float64}[];
   U2total = Ucurr*Ucurr;
+  U2rolling = Float64[];
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
   rolls = Int[];
@@ -89,6 +91,8 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
       push!(rolls, s);
       push!(xrolling, xtotal / s);
       push!(Urolling, Utotal / s);
+      push!(x2rolling, x2total / s);
+      push!(U2rolling, U2total / s);
       push!(
             xstd_rolling, 
             map(i -> sqrt(max(0.0, x2total[i] / s - (xtotal[i] / s)^2)), 1:2)
@@ -122,6 +126,7 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
   return Dict(:xavg => xtotal / nsteps, :Uavg => Utotal / nsteps,
               :xrolling => xrolling, :Urolling => Urolling,
               :x2avg => x2total / nsteps, :U2avg => U2total / nsteps,
+              :x2rolling => x2rolling, :Urolling => U2rolling,
               :xstd_rolling => xstd_rolling, :Ustd_rolling => Ustd_rolling,
               :rolls => rolls, :ar => nacc / nsteps);
 
