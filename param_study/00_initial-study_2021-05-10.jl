@@ -7,6 +7,7 @@ else
   ".";
 end
 
+HOME = "/home/mgrasing"
 dryrun = false;
 fmt(x) = @sprintf("%06d", round(Int, 1e3*x));
 nsteps = convert(Int, 1e6);
@@ -62,13 +63,13 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "refl-ex1.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
          @info "Case: $case has already been run.";
        end
-     end, zip(names[1:2], cases[1:2]));
+     end, zip(names, cases));
 
 #############################################################################
 println("Example 2: translation symmetry");
@@ -114,13 +115,13 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
+         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "trans-ex2.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
          output = read(command, String);
          write(outfile, output);
        else
          @info "Case: $case has already been run.";
        end
-     end, zip(names[1:2], cases[1:2]));
+     end, zip(names, cases));
 
 #############################################################################
 println("Example 3: D2 symmetry");
@@ -171,13 +172,13 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "D2-ex3.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "D2-ex3.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
          @info "Case: $case has already been run.";
        end
-     end, zip(names[1:2], cases[1:2]));
+     end, zip(names, cases));
 
 #############################################################################
 println("Example 4: rosenbock");
@@ -193,8 +194,8 @@ cases = [
              b in [10.0; 100.0; 1000.0],
              x0func in [
                         "(::Any) -> [0.0; 0.0]"; 
-                        "(::Any) -> rand(Normal(0.0, 1.0))";
-                        "(::Any) -> rand(Normal(0.0, 3.0))"
+                        "(::Any) -> rand(Normal(0.0, 1.0), 2)";
+                        "(::Any) -> rand(Normal(0.0, 3.0), 2)"
                        ],
              f in [0.0; 1e-2; 0.1; 0.2; 0.5; 1.0],
              g in [0.0; 1e-2; 0.1; 0.2; 0.5; 1.0]
@@ -222,10 +223,10 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "rosenbrock-ex4.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "rosenbrock-ex4.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
          @info "Case: $case has already been run.";
        end
-     end, zip(names[1:2], cases[1:2]));
+     end, zip(names, cases));
