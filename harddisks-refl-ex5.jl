@@ -13,7 +13,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "(args::Any) -> rand(Uniform(-10*args[\"num-disks\"]*args[\"disk-diameter\"], 10*args[\"num-disks\"]*args[\"disk-diameter\"]), args[\"num-disks\"])"
+    default = "(args::Any) -> collect(range(0.0, (args[\"num-disks\"]+1)*args[\"disk-diameter\"]; length=args[\"num-disks\"]))"
   "--force", "-f"
     help = "applied force"
     arg_type = Float64
