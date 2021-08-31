@@ -1,5 +1,6 @@
 pargs = parse_args(s);
 pargs["x0"] = eval(Meta.parse(pargs["x0"]));
+pargs["weight"] = eval(Meta.parse(pargs["weight"]));
 passobj(myid(), workers(), :pargs);
 
 @everywhere begin;

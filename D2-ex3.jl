@@ -31,6 +31,7 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
   k = pargs["C1"];
   ℓ = pargs["C2"];
   f = pargs["force"];
+  wt = pargs["weight"];
   U = (x) -> k*( (x[1]-ℓ/2)^2 + (x[1]+ℓ/2)^2 + 
                  (x[2]-1/2)^2 + (x[2]+1/2)^2   ) - dot(f, x);
   x = pargs["x0"](pargs);
@@ -53,15 +54,17 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
   end
 
   nacc = 0;
-  xtotal = x;
+  wt_curr = wt(x);
+  inv_wt_total = 1 / wt_curr;
+  xtotal = x * inv_wt_total;
   xrolling = Vector{Float64}[];
   Ucurr = U(x);
-  Utotal = Ucurr;
+  Utotal = Ucurr * inv_wt_total;
   Urolling = Float64[];
-  x2total = x .* x;
+  x2total = (x .* x) * inv_wt_total;
   x2rolling = Vector{Float64}[];
   xstd_rolling = Vector{Float64}[];
-  U2total = Ucurr*Ucurr;
+  U2total = Ucurr*Ucurr * inv_wt_total;
   U2rolling = Float64[];
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
@@ -75,29 +78,35 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
     xtrial[1] = max(-ℓ/2, min(ℓ/2, xtrial[1]));
     xtrial[2] = max(-1/2, min(1/2, xtrial[2]));
     Utrial = U(xtrial);
-    if (Utrial < Ucurr) || (rand() <= exp(-(Utrial - Ucurr) / kT) )
+    wt_trial = wt(xtrial);
+    if rand() <= ( exp(-(Utrial - Ucurr) / kT) * (wt_trial / wt_curr) )
       x = xtrial;
       Ucurr = Utrial;
+      wt_curr = wt_trial;
       nacc += 1;
     end
 
-    xtotal += x;
-    Utotal += Ucurr;
-    x2total += x .* x;
-    U2total += Ucurr*Ucurr;
+    xtotal += x / wt_curr;
+    Utotal += Ucurr / wt_curr;
+    x2total += (x .* x) / wt_curr;
+    U2total += (Ucurr*Ucurr) / wt_curr;
+    inv_wt_total += 1 / wt(x);
     ar = nacc / s;
 
     if s % stepout == 0
       push!(rolls, s);
-      push!(xrolling, xtotal / s);
-      push!(Urolling, Utotal / s);
-      push!(x2rolling, x2total / s);
-      push!(U2rolling, U2total / s);
+      inv_wt = inv_wt_total / s;
+      push!(xrolling, xtotal / s / inv_wt);
+      push!(Urolling, Utotal / s / inv_wt);
+      push!(x2rolling, x2total / s / inv_wt);
+      push!(U2rolling, U2total / s / inv_wt);
       push!(
             xstd_rolling, 
-            map(i -> sqrt(max(0.0, x2total[i] / s - (xtotal[i] / s)^2)), 1:2)
+            map(i -> sqrt(max(0.0, x2total[i] / s / inv_wt - 
+                                   (xtotal[i] / s / inv_wt)^2)), 1:2)
            );
-      push!(Ustd_rolling, sqrt(max(0.0, U2total / s - (Utotal / s)^2)));
+      push!(Ustd_rolling, sqrt(max(0.0, U2total / s / inv_wt - 
+                                        (Utotal / s / inv_wt)^2)));
     end
 
     if time() - last_update > pargs["update-freq"]
@@ -123,11 +132,15 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
 
   end
 
-  return Dict(:xavg => xtotal / nsteps, :Uavg => Utotal / nsteps,
+  inv_wt = inv_wt_total / nsteps;
+  return Dict(:xavg => xtotal / nsteps / inv_wt, 
+              :Uavg => Utotal / nsteps / inv_wt,
               :xrolling => xrolling, :Urolling => Urolling,
-              :x2avg => x2total / nsteps, :U2avg => U2total / nsteps,
+              :x2avg => x2total / nsteps / inv_wt, 
+              :U2avg => U2total / nsteps / inv_wt,
               :x2rolling => x2rolling, :Urolling => U2rolling,
-              :xstd_rolling => xstd_rolling, :Ustd_rolling => Ustd_rolling,
+              :xstd_rolling => xstd_rolling, 
+              :Ustd_rolling => Ustd_rolling,
               :rolls => rolls, :ar => nacc / nsteps);
 
 end

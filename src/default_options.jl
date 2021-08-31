@@ -25,6 +25,10 @@ default_settings = ArgParseSettings();
   "--orbit"
     help = "exploit underlying discrete symmetry by taking orbits during trial moves"
     action = :store_true
+  "--weight", "-w"
+    help = "umbrella sampling weight"
+    arg_type = String
+    default = "x -> 1"
   "--dx", "-x"
     help = "maximum step length"
     arg_type = Float64;
