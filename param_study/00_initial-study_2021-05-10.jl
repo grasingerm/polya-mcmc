@@ -63,7 +63,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "refl-ex1.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -115,7 +115,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "trans-ex2.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
+         command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
          output = read(command, String);
          write(outfile, output);
        else
@@ -172,7 +172,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "D2-ex3.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "D2-ex3.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -223,7 +223,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `$HOME/julia-1.6.1/bin/julia -O 3 -p $nsubprocs "rosenbrock-ex4.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "rosenbrock-ex4.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else

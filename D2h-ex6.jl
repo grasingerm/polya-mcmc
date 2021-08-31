@@ -113,7 +113,7 @@ end
   start = time();
   last_update = start;
   for s = 1:nsteps
-    xtrial = x + rand(dx_dist)*view(basis_vectors, :, rand(1:3));
+    xtrial = x + rand(dx_dist, 3);
     orbf!(xtrial);
     pbc!(xtrial, [a; b; c]);
     Utrial = U(xtrial);
