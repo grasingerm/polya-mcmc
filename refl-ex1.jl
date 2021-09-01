@@ -111,7 +111,6 @@ pargs = src_include("parse_args.jl");
 
   end
 
-  @show Urolling;
   return Dict(:xavg => xtotal / inv_wt_total, 
               :Uavg => Utotal / inv_wt_total,
               :xrolling => copy(xrolling), :Urolling => copy(Urolling),

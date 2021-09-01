@@ -138,7 +138,7 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
               :xrolling => xrolling, :Urolling => Urolling,
               :x2avg => x2total / nsteps / inv_wt, 
               :U2avg => U2total / nsteps / inv_wt,
-              :x2rolling => x2rolling, :Urolling => U2rolling,
+              :x2rolling => x2rolling, :U2rolling => U2rolling,
               :xstd_rolling => xstd_rolling, 
               :Ustd_rolling => Ustd_rolling,
               :rolls => rolls, :ar => nacc / nsteps);
