@@ -19,6 +19,9 @@ s = ArgParseSettings();
     help = "applied force"
     arg_type = Float64
     default = 0.0
+  "--periodic-bcs", "-p"
+    help = "enforce periodic boundary conditions"
+    action = :store_true
 end
 
 default_options = src_include("default_options.jl");
@@ -36,6 +39,19 @@ pargs = src_include("parse_args.jl");
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> x + rand([-1; 0; 1])*(2*π / n) : x -> x;
+  bcf = if pargs["periodic-bcs"]
+      x -> begin;
+        if x > π # apply periodic boundary conditions
+          -π + (x - π);
+        elseif x < -π
+          π - (-π - x);
+        else
+          x;
+        end
+      end
+    else
+      x -> x;
+    end
 
   nacc = 0;
   wt_curr = wt(x);
@@ -57,17 +73,13 @@ pargs = src_include("parse_args.jl");
   start = time();
   last_update = start;
   for s = 1:nsteps
-    xtrial = orbf(x + rand(dx_dist));
-    xtrial = if xtrial > π # apply periodic boundary conditions
-      -π + (xtrial - π);
-    elseif xtrial < -π
-      π - (-π - xtrial);
-    else
-      xtrial;
-    end
+    xtrial = bcf(orbf(x + rand(dx_dist)));
     Utrial = U(xtrial);
     wt_trial = wt(xtrial);
-    if rand() <= ( exp(-(Utrial - Ucurr) / kT) * wt_trial / wt_curr )
+    if (
+        (-π <= xtrial <= π) &&
+        (rand() <= ( exp(-(Utrial - Ucurr) / kT) * wt_trial / wt_curr ))
+       )
       x = xtrial;
       Ucurr = Utrial;
       wt_curr = wt_trial;
@@ -176,12 +188,14 @@ idx = rand(1:pargs["num-runs"]);
 @info "<x^2> via umb polya = $(results_umb_polya[idx][:x2avg])";
 
 if pargs["do-plots"]
+  nsamples = length(results_polya[idx][:rolls])
   idx = rand(1:pargs["num-runs"]);
   p = plot(results_std[idx][:rolls], results_std[idx][:xrolling]; label="std mcmc",
            xlabel = "step", ylabel = "\$\\langle x \\rangle\$");
   plot!(results_polya[idx][:rolls], results_polya[idx][:xrolling]; label="polya");
   plot!(results_umb_std[idx][:rolls], results_umb_std[idx][:xrolling]; label="umb");
   plot!(results_umb_polya[idx][:rolls], results_umb_polya[idx][:xrolling]; label="umb + polya");
+  plot!(results_polya[idx][:rolls], fill(xquad, nsamples); label="quad", linestyle=:dash);
   display(p);
   println();
   println("Press RETURN to exit...");
@@ -192,6 +206,7 @@ if pargs["do-plots"]
   plot!(results_polya[idx][:rolls], results_polya[idx][:Urolling]; label="polya");
   plot!(results_umb_std[idx][:rolls], results_umb_std[idx][:Urolling]; label="umb");
   plot!(results_umb_polya[idx][:rolls], results_umb_polya[idx][:Urolling]; label="umb + polya");
+  plot!(results_polya[idx][:rolls], fill(Uquad, nsamples); label="quad", linestyle=:dash);
   display(p);
   println();
   println("Press RETURN to exit...");
@@ -202,6 +217,7 @@ if pargs["do-plots"]
   plot!(results_polya[idx][:rolls], results_polya[idx][:x2rolling]; label="polya");
   plot!(results_umb_std[idx][:rolls], results_umb_std[idx][:x2rolling]; label="umb");
   plot!(results_umb_polya[idx][:rolls], results_umb_polya[idx][:x2rolling]; label="umb + polya");
+  plot!(results_polya[idx][:rolls], fill(x2quad, nsamples); label="quad", linestyle=:dash);
   display(p);
   println();
   println("Press RETURN to exit...");

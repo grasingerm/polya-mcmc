@@ -95,18 +95,18 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
 
     if s % stepout == 0
       push!(rolls, s);
-      inv_wt = inv_wt_total / s;
-      push!(xrolling, xtotal / s / inv_wt);
-      push!(Urolling, Utotal / s / inv_wt);
-      push!(x2rolling, x2total / s / inv_wt);
-      push!(U2rolling, U2total / s / inv_wt);
+      inv_wt = inv_wt_total;
+      push!(xrolling, xtotal / inv_wt);
+      push!(Urolling, Utotal / inv_wt);
+      push!(x2rolling, x2total / inv_wt);
+      push!(U2rolling, U2total / inv_wt);
       push!(
             xstd_rolling, 
-            map(i -> sqrt(max(0.0, x2total[i] / s / inv_wt - 
-                                   (xtotal[i] / s / inv_wt)^2)), 1:2)
+            map(i -> sqrt(max(0.0, x2total[i] / inv_wt - 
+                                   (xtotal[i] / inv_wt)^2)), 1:2)
            );
-      push!(Ustd_rolling, sqrt(max(0.0, U2total / s / inv_wt - 
-                                        (Utotal / s / inv_wt)^2)));
+      push!(Ustd_rolling, sqrt(max(0.0, U2total / inv_wt - 
+                                        (Utotal / inv_wt)^2)));
     end
 
     if time() - last_update > pargs["update-freq"]
@@ -132,12 +132,12 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
 
   end
 
-  inv_wt = inv_wt_total / nsteps;
-  return Dict(:xavg => xtotal / nsteps / inv_wt, 
-              :Uavg => Utotal / nsteps / inv_wt,
+  inv_wt = inv_wt_total;
+  return Dict(:xavg => xtotal / inv_wt, 
+              :Uavg => Utotal / inv_wt,
               :xrolling => xrolling, :Urolling => Urolling,
-              :x2avg => x2total / nsteps / inv_wt, 
-              :U2avg => U2total / nsteps / inv_wt,
+              :x2avg => x2total / inv_wt, 
+              :U2avg => U2total / inv_wt,
               :x2rolling => x2rolling, :U2rolling => U2rolling,
               :xstd_rolling => xstd_rolling, 
               :Ustd_rolling => Ustd_rolling,

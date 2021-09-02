@@ -39,6 +39,21 @@ This example is a 2 DOF system with D<sub>2</sub> symmetry.
 This example is a toy 2 DOF system which has a notoriously difficult energy landscape.
 It has a "weak" x &#8594; -x symmetry, which is strictly symmetric when a &#8594; 0.
 
+### harddisks-refl-ex5.jl
+This is the first example involving interacting particles.
+Here we have multiple particles in the same energy landscape with reflection symmetry as seen in refl-ex1.jl.
+The particles each have a single degree of freedom and are hard disks (interact via an excluded volume potential).
+We use the same group as in refl-ex1.jl.
+This example shows the ways in which this method can be generalized to more complex systems.
+It is also the first example which resides in a high dimensional space (scales linearly with the number of disks), which motivates the necessity for stochastic integration.
+That is, all of the previous examples can be readily solved using quadrature, but quadrature would struggle for this system when there is a large number of particles.
+
+### D2h-ex6.jl
+This example represents another push toward more realistic physical systems.
+Here we imagine an ion in a crystalline lattice.
+It interacts with atoms in the lattice (which are idealized as fixed) via an electrostatic Coloumb potential.
+The ion can move in 3 dimensional Euclidean space and the electrostatic energy landscape is described by a D<sub>2h</sub> symmetry (see Tinkham's text on group theory).
+
 ## TODO
 - [ ] Plot convergence rates using something more publication friendly--like gnuplot
 - [ ] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
