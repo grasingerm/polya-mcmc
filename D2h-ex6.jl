@@ -67,52 +67,37 @@ end
 @everywhere function mcmc(nsteps::Int, pargs)
   basis_vectors = [1 0 0; 0 1 0; 0 0 1];
   kT = pargs["kT"];
-  a = pargs["len-x"];
-  b = pargs["len-y"];
-  c = pargs["len-z"];
+  @show a = pargs["len-x"];
+  @show b = pargs["len-y"];
+  @show c = pargs["len-z"];
   f = pargs["force"];
   q = pargs["charge"];
   wt = pargs["weight"];
-  U = (x) -> begin
-    return (q*(
-               1 / sqrt((x[1] - a)^2 + (x[2])^2 + (x[3])^2) +
-               1 / sqrt((x[1] + a)^2 + (x[2])^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2] - b)^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2] + b)^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2])^2 + (x[3] - c)^2) +
-               1 / sqrt((x[1])^2 + (x[2])^2 + (x[3] + c)^2)
-              ) 
-            - dot(f, x));
-  end
+  latvecs = [
+             [-a; 0; 0],
+             [a; 0; 0],
+             [0; -b; 0],
+             [0; b; 0],
+             [0; 0; -c],
+             [0; 0; c]
+            ];
+  U = (x) -> q*sum(map(v -> 1/norm(x - v, 2), latvecs)) - dot(f, x)
   x = pargs["x0"](pargs);
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
   orbf! = if (pargs["orbit"])
     x -> begin;
       choice = rand(1:4);
-      # choice == 4 is the identity
       if choice == 1
         x[1] = -x[1];
       elseif choice == 2
         x[2] = -x[2];
       elseif choice == 3
         x[3] = -x[3];
-      #=elseif choice == 4
-        x[1] = -x[1];
-        x[2] = -x[2];
-      elseif choice == 5
-        x[1] = -x[1];
-        x[3] = -x[3];
-      elseif choice == 6
-        x[2] = -x[2];
-        x[3] = -x[3];
-      elseif choice == 7
-        x[:] = -x[:];
-        =#
       end
     end
   else
-    x -> begin; end;
+    x -> x;
   end
 
   wt_curr = wt(x);
@@ -122,7 +107,7 @@ end
   Ucurr = U(x);
   Utotal = Ucurr / wt_curr;
   Urolling = Float64[];
-  x2total = x .* x / wt_curr;
+  x2total = (x[:] .* x[:]) / wt_curr;
   x2rolling = Vector{Float64}[];
   xstd_rolling = Vector{Float64}[];
   U2total = Ucurr*Ucurr / wt_curr;
@@ -138,42 +123,44 @@ end
   start = time();
   last_update = start;
   for s = 1:nsteps
-    xtrial = x + rand(dx_dist, 3);
+    xtrial = x[:] + rand(dx_dist, 3);
     orbf!(xtrial);
-    #pbc!(xtrial, [a; b; c]);
     Utrial = U(xtrial);
     wt_trial = wt(xtrial);
     if (
-        -a <= x[1] <= a &&
-        -b <= x[2] <= b &&
-        -c <= x[3] <= c &&
-        rand() <= ( exp(-(Utrial - Ucurr) / kT) * wt_trial / wt_curr )
+        (abs(xtrial[1]) <= a) &&
+        (abs(xtrial[2]) <= b) &&
+        (abs(xtrial[3]) <= c) &&
+        (rand() <= ( exp(-(Utrial - Ucurr) / kT) * wt_trial / wt_curr ))
        )
-      x = xtrial;
+      x[:] = xtrial[:];
       Ucurr = Utrial;
       wt_curr = wt_trial;
       nacc += 1;
       nacc_total += 1;
     end
     natt += 1;
+    @assert((abs(x[1]) <= a) &&
+            (abs(x[2]) <= b) &&
+            (abs(x[3]) <= c));
 
     inv_wt_total += 1 / wt_curr;
-    xtotal += x / wt_curr;
+    xtotal[:] += x[:] / wt_curr;
     Utotal += Ucurr / wt_curr;
-    x2total += x .* x / wt_curr;
+    x2total[:] += (x[:] .* x[:]) / wt_curr;
     U2total += Ucurr*Ucurr / wt_curr;
     ar = nacc_total / s; # rolling acceptance ratio
 
     if s % stepout == 0
       push!(rolls, s);
-      push!(xrolling, xtotal / inv_wt_total);
+      push!(xrolling, xtotal[:] / inv_wt_total);
       push!(Urolling, Utotal / inv_wt_total);
-      push!(x2rolling, x2total / inv_wt_total);
+      push!(x2rolling, x2total[:] / inv_wt_total);
       push!(U2rolling, U2total / inv_wt_total);
       push!(
             xstd_rolling, 
             map(i -> sqrt(max(0.0, x2total[i] / inv_wt_total 
-                              - (xtotal[i] / inv_wt_total)^2)), 1:2)
+                              - (xtotal[i] / inv_wt_total)^2)), 1:3)
            );
       push!(Ustd_rolling, sqrt(max(0.0, U2total / inv_wt_total - 
                                    (Utotal / inv_wt_total)^2)));
@@ -237,17 +224,15 @@ b = pargs["len-y"];
 c = pargs["len-z"];
 q = pargs["charge"];
 f = pargs["force"];
-U = (x) -> begin
-    return (q*(
-               1 / sqrt((x[1] - a)^2 + (x[2])^2 + (x[3])^2) +
-               1 / sqrt((x[1] + a)^2 + (x[2])^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2] - b)^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2] + b)^2 + (x[3])^2) +
-               1 / sqrt((x[1])^2 + (x[2])^2 + (x[3] - c)^2) +
-               1 / sqrt((x[1])^2 + (x[2])^2 + (x[3] + c)^2)
-              ) 
-            - dot(f, x));
-  end
+latvecs = [
+             [-a; 0; 0],
+             [a; 0; 0],
+             [0; -b; 0],
+             [0; b; 0],
+             [0; 0; -c],
+             [0; 0; c]
+            ];
+U = (x) -> q*sum(map(v -> 1/norm(x - v, 2), latvecs)) - dot(f, x)
 meq = 25000;
 (Zquad, Zquad_err) = hcubature(x -> exp(-U(x) / kT), [-a, -b, -c], [a, b, c]; maxevals=meq);
 (xquad, xquad_err) = hcubature(3, (x, v) -> (v[:] = x*exp(-U(x) / kT) / Zquad), [-a, -b, -c], [a, b, c]; maxevals=meq);
