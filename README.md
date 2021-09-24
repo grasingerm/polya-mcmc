@@ -1,5 +1,5 @@
 # polya-mcmc
-Symmetry, finite groups, and Markov chain Monte Carlo methods.
+Symmetry, discrete groups, and Markov chain Monte Carlo methods.
 
 ## Introduction
 Conceptually, the basic idea here is to leverage discrete symmetries, 
