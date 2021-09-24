@@ -26,19 +26,19 @@ in the root directory of this project.
 
 ## Examples
 ### refl-ex1.jl
-This example is a 1 DOF system with a reflection symmetry.
+This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small enough).
 It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
 
 ### trans-ex2.jl
-This example is a 1 DOF system with discrete translational symmetries.
+This example is a 1 DOF system with discrete translational semi-symmetries (_f_ small enough).
 It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
 
 ### D2-ex3.jl
-This example is a 2 DOF system with D<sub>2</sub> symmetry.
+This example is a 2 DOF system with D<sub>2</sub> semi-symmetry.
 
 ### rosenbrock-ex4.jl
 This example is a toy 2 DOF system which has a notoriously difficult energy landscape.
-It has a "weak" x &#8594; -x symmetry, which is strictly symmetric when a &#8594; 0.
+It has a semi-symmetry x &#8594; -x, which is strictly symmetric when a &#8594; 0.
 
 ### harddisks-refl-ex5.jl
 This is the first example involving interacting particles.
