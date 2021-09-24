@@ -27,11 +27,11 @@ in the root directory of this project.
 ## Examples
 ### refl-ex1.jl
 This example is a 1 DOF system with a reflection symmetry.
-It is a double well potential given by _U = a x^4 - b x^2 - f x_.
+It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
 
 ### trans-ex2.jl
 This example is a 1 DOF system with discrete translational symmetries.
-It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_$.
+It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
 
 ### D2-ex3.jl
 This example is a 2 DOF system with D<sub>2</sub> symmetry.
