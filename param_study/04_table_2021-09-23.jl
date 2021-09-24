@@ -79,6 +79,7 @@ names = [
              n in [2; 3; 5; 10],
              kT in [1.0; 0.1],
              f in [0.0; 1.0; 4.0; 8.0]
+        ];
 
 println("total number of cases to run for ex2: $(length(cases))");
 exoutdir = joinpath(workdir, "trans-ex2");
