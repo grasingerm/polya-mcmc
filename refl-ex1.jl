@@ -20,6 +20,14 @@ s = ArgParseSettings();
     help = "applied force"
     arg_type = Float64
     default = 0.0
+  "--umbrella-b"
+    help = "pseudopotential 'b'"
+    arg_type = Float64
+    default = 0.5
+  "--umbrella-C"
+    help = "pseudopotential 'C'"
+    arg_type = Float64
+    default = 1.0
 end
 
 default_options = src_include("default_options.jl");
@@ -39,7 +47,6 @@ pargs = src_include("parse_args.jl");
   dx_dist = Uniform(-xstep, xstep);
   orbf = (pargs["orbit"]) ? x -> rand([-1; 1])*x : x -> x;
 
-  nacc = 0;
   wt_curr = wt(x);
   inv_wt_total = 1 / wt_curr;
   xtotal = x / wt_curr;
@@ -56,6 +63,17 @@ pargs = src_include("parse_args.jl");
   stepout = pargs["stepout"];
   rolls = Int[];
 
+  traj_file = if pargs["do-trajectory"]
+    mkpath(pargs["outdir"]);
+    open(joinpath(pargs["outdir"], "trajectory.csv"), "w");
+  else
+    nothing;
+  end
+
+  natt = 0;
+  nacc = 0;
+  nacc_total = 0;
+
   start = time();
   last_update = start;
   for s = 1:nsteps
@@ -67,14 +85,16 @@ pargs = src_include("parse_args.jl");
       Ucurr = Utrial;
       wt_curr = wt_trial;
       nacc += 1;
+      nacc_total += 1;
     end
+    natt += 1;
 
     inv_wt_total += 1 / wt_curr;
     xtotal += x / wt_curr;
     Utotal += Ucurr / wt_curr;
     x2total += x*x / wt_curr;
     U2total += Ucurr*Ucurr / wt_curr;
-    ar = nacc / s;
+    ar = nacc_total / s; # rolling acceptance ratio
 
     if s % stepout == 0
       push!(rolls, s);
@@ -86,6 +106,9 @@ pargs = src_include("parse_args.jl");
                                         - (xtotal / inv_wt_total)^2)));
       push!(Ustd_rolling, sqrt(max(0.0, U2total / inv_wt_total - 
                                         (Utotal / inv_wt_total)^2)));
+      if pargs["do-trajectory"]
+        writedlm(traj_file, [x Ucurr x*x Ucurr*Ucurr ar s]);
+      end
     end
 
     if time() - last_update > pargs["update-freq"]
@@ -95,20 +118,29 @@ pargs = src_include("parse_args.jl");
     end
 
     if (
-        pargs["step-adjust-scale"] != 1.0 &&
+        pargs["step-adjust-scale"] != 1.0   &&
+        pargs["steps-per-adjust"] != 0      &&
         s % pargs["steps-per-adjust"] == 0
        ) # adjust step size?
-       ar = nacc / s;
+       ar = nacc / natt;
        if (ar > pargs["step-adjust-ub"])
-         @info "acceptance ratio is high; increasing step size";
+         nacc = 0;
+         natt = 0;
          xstep *= pargs["step-adjust-scale"];
+         @info "acceptance ratio is high; increasing step size", xstep;
        elseif ar < pargs["step-adjust-lb"]
-         @info "acceptance ratio is low; decreasing step size";
+         nacc = 0;
+         natt = 0;
          xstep /= pargs["step-adjust-scale"];
+         @info "acceptance ratio is low; decreasing step size", xstep;
        end
        dx_dist = Uniform(-xstep, xstep);
     end
 
+  end
+
+  if pargs["do-trajectory"]
+    close(traj_file);
   end
 
   return Dict(:xavg => xtotal / inv_wt_total, 
@@ -119,19 +151,22 @@ pargs = src_include("parse_args.jl");
               :x2rolling => copy(x2rolling), :U2rolling => copy(U2rolling),
               :xstd_rolling => copy(xstd_rolling), 
               :Ustd_rolling => copy(Ustd_rolling),
-              :rolls => rolls, :ar => nacc / nsteps);
+              :rolls => rolls, 
+              :ar => nacc / natt,
+              :AR => nacc_total / nsteps
+             );
 
 end
 
 src_include("wrap_main_runs.jl");
 
 results_std, results_polya = wrap_main_runs(pargs);
-post_process_main_runs(results_std, results_polya, pargs);
 
-pargs["weight"] = x -> exp(-x^2 / 2) / sqrt(2*π);
-pargs["outdir"] = joinpath(pargs["outdir"], "umb");
-results_umb_std, results_umb_polya = wrap_main_runs(pargs);
-post_process_main_runs(results_umb_std, results_umb_polya, pargs);
+uC, ub = pargs["umbrella-C"], pargs["umbrella-b"];
+pargs_umb = copy(pargs);
+pargs_umb["weight"] = x -> uC*exp(-ub*x^2);
+pargs_umb["outdir"] = joinpath(pargs["outdir"], "umb");
+results_umb_std, results_umb_polya = wrap_main_runs(pargs_umb);
 
 kT = pargs["kT"];
 a = pargs["C1"];
@@ -139,28 +174,41 @@ b = pargs["C2"];
 f = pargs["force"];
 wt = pargs["weight"];
 U = (x) -> a*x^4 - b*x^2 - f*x;
+meq = 25000;
+ℓ = 4*sqrt(b / a);
 (Zquad, Zquad_err) = (
-                      collect(hquadrature(t -> -exp(-U(1/t)/kT) / t^2, 0.0, -1/(10*kT))) +
-                      collect(hquadrature(x -> exp(-U(x)/kT), -10*kT, 10*kT)) +
-                      collect(hquadrature(t -> -exp(-U(1/t)/kT) / t^2, 1/(10*kT), 0.0))
+                      collect(hquadrature(t -> -exp(-U(1/t)/kT) / t^2, 0.0, -1/ℓ; maxevals=meq)) +
+                      collect(hquadrature(x -> exp(-U(x)/kT), -ℓ, ℓ; maxevals=meq)) +
+                      collect(hquadrature(t -> -exp(-U(1/t)/kT) / t^2, 1/ℓ, 0.0; maxevals=meq))
                      );
-(xquad, xquad_err) = (
-                      collect(hquadrature(t -> -(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/(10*kT))) +
-                      collect(hquadrature(x -> x*exp(-U(x)/kT) / Zquad, -10*kT, 10*kT)) +
-                      collect(hquadrature(t -> -(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 1/(10*kT), 0.0))
+(xquad, xquad_err) = (f == 0) ? [0.0; 0.0] : (
+                       (
+                        collect(hquadrature(t -> -(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/ℓ; maxevals=meq)) +
+                        collect(hquadrature(x -> x*exp(-U(x)/kT) / Zquad, -ℓ, ℓ; maxevals=meq)) +
+                        collect(hquadrature(t -> -(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 1/ℓ, 0.0; maxevals=meq))
+                       )
                      );
 (Uquad, Uquad_err) = (
-                      collect(hquadrature(t -> -U(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/(10*kT))) +
-                      collect(hquadrature(x -> U(x)*exp(-U(x)/kT) / Zquad, -10*kT, 10*kT)) +
-                      collect(hquadrature(t -> -U(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 1/(10*kT), 0.0))
+                      collect(hquadrature(t -> -U(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/ℓ; maxevals=meq)) +
+                      collect(hquadrature(x -> U(x)*exp(-U(x)/kT) / Zquad, -ℓ, ℓ; maxevals=meq)) +
+                      collect(hquadrature(t -> -U(1/t)*exp(-U(1/t)/kT) / t^2 / Zquad, 1/ℓ, 0.0; maxevals=meq))
                      );
 (x2quad, x2quad_err) = (
-                      collect(hquadrature(t -> -(1/t)^2*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/(10*kT))) +
-                      collect(hquadrature(x -> x^2*exp(-U(x)/kT) / Zquad, -10*kT, 10*kT)) +
-                      collect(hquadrature(t -> -(1/t)^2*exp(-U(1/t)/kT) / t^2 / Zquad, 1/(10*kT), 0.0))
+                      collect(hquadrature(t -> -(1/t)^2*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/ℓ; maxevals=meq)) +
+                      collect(hquadrature(x -> x^2*exp(-U(x)/kT) / Zquad, -ℓ, ℓ; maxevals=meq)) +
+                      collect(hquadrature(t -> -(1/t)^2*exp(-U(1/t)/kT) / t^2 / Zquad, 1/ℓ, 0.0; maxevals=meq))
+                     );
+(U2quad, U2quad_err) = (
+                        collect(hquadrature(t -> -(U(1/t))^2*exp(-U(1/t)/kT) / t^2 / Zquad, 0.0, -1/ℓ; maxevals=meq)) +
+                        collect(hquadrature(x -> (U(x))^2*exp(-U(x)/kT) / Zquad, -ℓ, ℓ; maxevals=meq)) +
+                        collect(hquadrature(t -> -(U(1/t))^2*exp(-U(1/t)/kT) / t^2 / Zquad, 1/ℓ, 0.0; maxevals=meq))
                      );
 
 idx = rand(1:pargs["num-runs"]);
+@info "std ar = $(results_std[idx][:ar])";
+@info "polya ar = $(results_polya[idx][:ar])";
+@info "umb std ar = $(results_umb_std[idx][:ar])";
+@info "umb polya ar = $(results_umb_polya[idx][:ar])";
 @info "Z via quadrature = $Zquad; error = $Zquad_err";
 @info "<x> via quadrature = $xquad; error = $xquad_err";
 @info "<x> via std = $(results_std[idx][:xavg])";
@@ -177,10 +225,41 @@ idx = rand(1:pargs["num-runs"]);
 @info "<x^2> via polya = $(results_polya[idx][:x2avg])";
 @info "<x^2> via umb std = $(results_umb_std[idx][:x2avg])";
 @info "<x^2> via umb polya = $(results_umb_polya[idx][:x2avg])";
+@info "<U^2> via quadrature = $U2quad; error = $U2quad_err";
+@info "<U^2> via std = $(results_std[idx][:U2avg])";
+@info "<U^2> via polya = $(results_polya[idx][:U2avg])";
+@info "<U^2> via umb std = $(results_umb_std[idx][:U2avg])";
+@info "<U^2> via umb polya = $(results_umb_polya[idx][:U2avg])";
 #@info "<Urolling> via std = $(results_std[idx][:Urolling])";
 #@info "<Urolling> via polya = $(results_polya[idx][:Urolling])";
 #@info "<Urolling> via umb std = $(results_umb_std[idx][:Urolling])";
 #@info "<Urolling> via umb polya = $(results_umb_polya[idx][:Urolling])";
+
+L1_error_std, L1_error_polya = post_process_main_runs(results_std, 
+                                                      results_polya, 
+                                                      pargs; 
+                                                      xrolling=xquad, 
+                                                      Urolling=Uquad, 
+                                                      x2rolling=x2quad,
+                                                      U2rolling=U2quad);
+L1_err_umb_std, L1_err_umb_polya = post_process_main_runs(results_umb_std, 
+                                                          results_umb_polya,
+                                                          pargs_umb; 
+                                                          xrolling=xquad, 
+                                                          Urolling=Uquad, 
+                                                          x2rolling=x2quad,
+                                                          U2rolling=U2quad);
+if pargs["do-csvs"]
+  for k in keys(L1_error_std)
+    writedlm(joinpath(pargs["outdir"], "L1_$k.csv"), hcat(
+                                                          results_std[1][:rolls],
+                                                          L1_error_std[k],
+                                                          L1_error_polya[k],
+                                                          L1_err_umb_std[k],
+                                                          L1_err_umb_polya[k]
+                                                         ), ',');
+  end
+end
 
 if pargs["do-plots"]
   idx = rand(1:pargs["num-runs"]);

@@ -22,6 +22,9 @@ default_settings = ArgParseSettings();
   "--do-csvs", "-C"
     help = "create csv files of data"
     action = :store_true
+  "--do-trajectory"
+    help = "create a data file of the chain trajectory"
+    action = :store_true
   "--orbit"
     help = "exploit underlying discrete symmetry by taking orbits during trial moves"
     action = :store_true
@@ -40,7 +43,7 @@ default_settings = ArgParseSettings();
   "--step-adjust-ub", "-U"
     help = "adjust step sizes if acc. ratio above this threshold"
     arg_type = Float64
-    default = 0.55
+    default = 0.40
   "--step-adjust-scale", "-A"
     help = "scale factor for adjusting step sizes (> 1.0)"
     arg_type = Float64

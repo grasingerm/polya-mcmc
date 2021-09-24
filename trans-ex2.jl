@@ -22,6 +22,11 @@ s = ArgParseSettings();
   "--periodic-bcs", "-p"
     help = "enforce periodic boundary conditions"
     action = :store_true
+  "--umbrella-C"
+    help = "pseudopotential 'C'"
+    arg_type = Float64
+    default = 1.0
+
 end
 
 default_options = src_include("default_options.jl");
@@ -69,6 +74,10 @@ pargs = src_include("parse_args.jl");
   Ustd_rolling = Float64[];
   stepout = pargs["stepout"];
   rolls = Int[];
+  
+  natt = 0;
+  nacc = 0;
+  nacc_total = 0;
 
   start = time();
   last_update = start;
@@ -84,14 +93,16 @@ pargs = src_include("parse_args.jl");
       Ucurr = Utrial;
       wt_curr = wt_trial;
       nacc += 1;
+      nacc_total += 1;
     end
+    natt += 1;
 
     inv_wt_total += 1 / wt_curr;
     xtotal += x / wt_curr;
     Utotal += Ucurr / wt_curr;
     x2total += x*x / wt_curr;
     U2total += Ucurr*Ucurr / wt_curr;
-    ar = nacc / s;
+    ar = nacc_total / s; # rolling acceptance ratio
 
     if s % stepout == 0
       push!(rolls, s);
@@ -115,12 +126,16 @@ pargs = src_include("parse_args.jl");
         pargs["step-adjust-scale"] != 1.0 &&
         s % pargs["steps-per-adjust"] == 0
        ) # adjust step size?
-       ar = nacc / s;
+       ar = nacc / natt;
        if (ar > pargs["step-adjust-ub"])
-         @info "acceptance ratio is high; increasing step size";
+         @info "acceptance ratio is high; increasing step size", xstep;
+         nacc = 0;
+         natt = 0;
          xstep *= pargs["step-adjust-scale"];
        elseif ar < pargs["step-adjust-lb"]
-         @info "acceptance ratio is low; decreasing step size";
+         @info "acceptance ratio is low; decreasing step size", xstep;
+         nacc = 0;
+         natt = 0;
          xstep /= pargs["step-adjust-scale"];
        end
        dx_dist = Uniform(-xstep, xstep);
@@ -138,7 +153,8 @@ pargs = src_include("parse_args.jl");
               :U2rolling => U2rolling,
               :xstd_rolling => xstd_rolling, 
               :Ustd_rolling => Ustd_rolling,
-              :rolls => rolls, :ar => nacc / nsteps);
+              :rolls => rolls, 
+              :ar => nacc / nsteps, :AR => nacc_total / nsteps);
 
 end
 
@@ -160,14 +176,23 @@ L1_error_std, L1_error_polya = post_process_main_runs(results_std,
                                                       results_polya,
                                                       pargs;
                                                       xrolling=xquad,
-                                                      Urolling=Uquad);
+                                                      Urolling=Uquad,
+                                                      x2rolling=x2quad,
+                                                      U2rolling=U2quad);
+
+
 μs = vcat(range(0.0, -π; step=-2*π/n), range(0.0, π; step=2*π/n)[2:end]);
-pargs["weight"] = x -> a * sum(map(μ -> exp(-n^2*(x-μ)^2 / 2), μs));
-pargs["outdir"] = joinpath(pargs["outdir"], "umb");
-results_umb_std, results_umb_polya = wrap_main_runs(pargs);
-L1_error_umb_std, L1_error_umb_polya = post_process_main_runs(results_umb_std, 
-                                                              results_umb_polya, 
-                                                              pargs);
+pargs_umb = copy(pargs);
+pargs_umb["weight"] = x -> a * sum(map(μ -> exp(-n^2*(x-μ)^2 / 2), μs));
+pargs_umb["outdir"] = joinpath(pargs["outdir"], "umb");
+results_umb_std, results_umb_polya = wrap_main_runs(pargs_umb);
+L1_err_umb_std, L1_err_umb_polya = post_process_main_runs(results_umb_std, 
+                                                          results_umb_polya, 
+                                                          pargs_umb,
+                                                          xrolling=xquad,
+                                                          Urolling=Uquad,
+                                                          x2rolling=x2quad,
+                                                          U2rolling=U2quad);
 
 idx = rand(1:pargs["num-runs"]);
 @info "Z via quadrature = $Zquad; error = $Zquad_err";
@@ -186,6 +211,18 @@ idx = rand(1:pargs["num-runs"]);
 @info "<x^2> via polya = $(results_polya[idx][:x2avg])";
 @info "<x^2> via umb std = $(results_umb_std[idx][:x2avg])";
 @info "<x^2> via umb polya = $(results_umb_polya[idx][:x2avg])";
+
+if pargs["do-csvs"]
+  for k in keys(L1_error_std)
+    writedlm(joinpath(pargs["outdir"], "L1_$k.csv"), hcat(
+                                                          results_std[1][:rolls],
+                                                          L1_error_std[k],
+                                                          L1_error_polya[k],
+                                                          L1_err_umb_std[k],
+                                                          L1_err_umb_polya[k]
+                                                         ), ',');
+  end
+end
 
 if pargs["do-plots"]
   nsamples = length(results_polya[idx][:rolls])
