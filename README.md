@@ -25,6 +25,12 @@ running
 in the root directory of this project.
 
 ## Examples
+### Simulation parameters
+Each example has a command-line interface.
+To obtain a list of program and simulation parameters, use
+
+    julia <example-file-name.jl> --help
+
 ### refl-ex1.jl
 This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small enough).
 It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
