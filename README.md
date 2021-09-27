@@ -2,17 +2,16 @@
 Symmetry, discrete groups, and Markov chain Monte Carlo methods.
 
 ## Introduction
-Conceptually, the basic idea here is to leverage discrete symmetries, 
-or Hamiltonians which have a kind of weak discrete symmetry, in order to perform 
+Conceptually, the idea here is to leverage discrete symmetries, 
+or Hamiltonians which have a kind of semi-discrete symmetry, in order to perform 
 efficient Markov cain Monte Carlo sampling of energy landscapes with multiple,
 separated energy wells--a kind of hybrid computational statistical physics and 
-group theory study, if you will.
+group theory study.
 Instead of writing a single modular, user- and developer-friendly code, 
 (which would require time, patience, skill, and planning--none of which I have)
 I've opted to put together many quick and simple examples.
 Practically, the main goal here is to further research, not develop software. 
-There are plenty of Monte Carlo codes out there. I have no intention of 
-competing with any of them and couldn't even if I tried. Instead, my hope is to 
+There are plenty of Monte Carlo codes out there. The primary goal of this code is to 
 develop and illustrate principles which can be incorporated into better, 
 more practical, and more mature MCMC codes.
 
@@ -26,18 +25,26 @@ running
 in the root directory of this project.
 
 ## Examples
+### Simulation parameters
+Each example has a command-line interface.
+To obtain a list of program and simulation parameters, use
+
+    julia <example-file-name.jl> --help
+
 ### refl-ex1.jl
-This example is a 1 DOF system with a reflection symmetry.
+This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small enough).
+It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
 
 ### trans-ex2.jl
-This example is a 1 DOF system with discrete translational symmetries.
+This example is a 1 DOF system with discrete translational semi-symmetries (_f_ small enough).
+It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
 
 ### D2-ex3.jl
-This example is a 2 DOF system with D<sub>2</sub> symmetry.
+This example is a 2 DOF system with D<sub>2</sub> semi-symmetry.
 
 ### rosenbrock-ex4.jl
 This example is a toy 2 DOF system which has a notoriously difficult energy landscape.
-It has a "weak" x &#8594; -x symmetry, which is strictly symmetric when a &#8594; 0.
+It has a semi-symmetry x &#8594; -x, which is strictly symmetric when a &#8594; 0.
 
 ### harddisks-refl-ex5.jl
 This is the first example involving interacting particles.
