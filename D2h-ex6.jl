@@ -23,7 +23,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "(args::Any) -> [0.0; 0.0; 0.0]"
+    default = "(args::Any) -> [rand(Uniform(-args[\"len-x\"], args[\"len-x\"])), rand(Uniform(-args[\"len-y\"], args[\"len-y\"])), rand(Uniform(-args[\"len-z\"], args[\"len-z\"]))]"
   "--umbrella-sigma-a"
     help = "umbrella weight width"
     arg_type = Float64
