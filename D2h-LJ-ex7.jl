@@ -16,10 +16,14 @@ s = ArgParseSettings();
     help = "length in the z-direction"
     arg_type = Float64
     default = 2.0
-  "--charge", "-q"
-    help = "charge of ion"
+  "--eps", "-e"
+    help = "well depth"
     arg_type = Float64
-    default = 5e-2
+    default = 1e-1
+  "--sigma", "-g"
+    help = "well radius"
+    arg_type = Float64
+    default = 0.25
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
@@ -64,6 +68,14 @@ pargs["force"] = eval(Meta.parse(pargs["force"]));
        end, zip(xs, ℓs))
 end
 
+@everywhere function LJ(ϵ, σ, r)
+  r2 = σ*σ/dot(r, r);
+  r4 = r2*r2;
+  r6 = r4*r2;
+  r12 = r6*r6;
+  return 4*ϵ*(r12 - r6);
+end
+
 @everywhere function mcmc(nsteps::Int, pargs)
   basis_vectors = [1 0 0; 0 1 0; 0 0 1];
   kT = pargs["kT"];
@@ -71,7 +83,8 @@ end
   b = pargs["len-y"];
   c = pargs["len-z"];
   f = pargs["force"];
-  q = pargs["charge"];
+  ϵ = pargs["eps"];
+  σ = pargs["sigma"];
   wt = pargs["weight"];
   latvecs = [
              [0; 0; 0],
@@ -82,7 +95,7 @@ end
              [0; 0; -c],
              [0; 0; c]
             ];
-  U = (x) -> q*sum(map(v -> 1/norm(x - v, 2), latvecs)) - dot(f, x)
+  U = (x) -> sum(map(v -> LJ(ϵ, σ, x - v), latvecs)) - dot(f, x);
   x = pargs["x0"](pargs);
   xstep = pargs["dx"];
   dx_dist = Uniform(-xstep, xstep);
@@ -223,8 +236,9 @@ kT = pargs["kT"];
 a = pargs["len-x"];
 b = pargs["len-y"];
 c = pargs["len-z"];
-q = pargs["charge"];
 f = pargs["force"];
+ϵ = pargs["eps"];
+σ = pargs["sigma"];
 latvecs = [
              [0; 0; 0],
              [-a; 0; 0],
@@ -234,7 +248,7 @@ latvecs = [
              [0; 0; -c],
              [0; 0; c]
             ];
-U = (x) -> q*sum(map(v -> 1/norm(x - v, 2), latvecs)) - dot(f, x)
+U = (x) -> sum(map(v -> LJ(ϵ, σ, x - v), latvecs)) - dot(f, x);
 meq = 25000;
 (Zquad, Zquad_err) = hcubature(x -> exp(-U(x) / kT), [-a, -b, -c], [a, b, c]; maxevals=meq);
 (xquad, xquad_err) = hcubature(3, (x, v) -> (v[:] = x*exp(-U(x) / kT) / Zquad), [-a, -b, -c], [a, b, c]; maxevals=meq);
