@@ -19,7 +19,7 @@ s = ArgParseSettings();
   "--charge", "-q"
     help = "charge of ion"
     arg_type = Float64
-    default = 5e-2
+    default = 1.0
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
