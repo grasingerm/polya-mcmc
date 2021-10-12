@@ -45,7 +45,7 @@ function post_process_main_runs(results_std, results_polya, pargs; kwargs...)
                                  map(x -> abs(x[m] - v[m]), results_std[i][k])
                           end, 1:length(results_std))) / length(results_std);
         L1_error_polya[String(k)*"-$m"] = sum(map(i -> begin;
-                                 map(x -> abs(x[m] - v[m]), results_std[i][k])
+                                 map(x -> abs(x[m] - v[m]), results_polya[i][k])
                             end, 1:length(results_polya))) / length(results_polya);
       end
     end

@@ -39,11 +39,11 @@ cases = [
         ];
 names = [
          "a-$(fmt(a))_b-$(fmt(b))_c-$(fmt(c))_q-$(fmt(q))_kT-$(fmt(kT))_f-$(fmt(f))"
-         for a in [1.0; 2.0; 5.0],
-             b in [1.0; 2.0],
+         for a in [0.5; 1.0; 2.0],
+             b in [0.5; 1.0],
              c in [1.0;],
-             q in [-3.0; -1.0; 1.0; 3.0],
-             kT in [1.0; 0.1; 0.05],
+             q in [1.0; 5.0],
+             kT in [1.0; 0.1],
              f in [0.0; 1.0; 4.0]
         ];
 cases = reshape(cases, length(cases));
