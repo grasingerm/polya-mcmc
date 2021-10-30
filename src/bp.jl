@@ -1,5 +1,5 @@
 using Distributed;
-using ProfileView;
+#using ProfileView;
 @everywhere using DelimitedFiles;
 @everywhere using Plots;
 @everywhere using ArgParse;
