@@ -224,6 +224,12 @@ if pargs["do-csvs"]
   end
 end
 
+if pargs["do-conv-rates"]
+  println("αs via std = $(convergence_rates(L1_error_std, results_std[1][:rolls]))");
+  println("αs via polya = $(convergence_rates(L1_error_polya, results_std[1][:rolls]))");
+  println("αs via umb = $(convergence_rates(L1_err_umb_std, results_std[1][:rolls]))");
+  println("αs via gu = $(convergence_rates(L1_err_umb_polya, results_std[1][:rolls]))");
+end
 if pargs["do-plots"]
   nsamples = length(results_polya[idx][:rolls])
   idx = rand(1:pargs["num-runs"]);

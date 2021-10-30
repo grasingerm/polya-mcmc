@@ -249,6 +249,7 @@ L1_err_umb_std, L1_err_umb_polya = post_process_main_runs(results_umb_std,
                                                           Urolling=Uquad, 
                                                           x2rolling=x2quad,
                                                           U2rolling=U2quad);
+
 if pargs["do-csvs"]
   for k in keys(L1_error_std)
     writedlm(joinpath(pargs["outdir"], "L1_$k.csv"), hcat(
@@ -259,6 +260,13 @@ if pargs["do-csvs"]
                                                           L1_err_umb_polya[k]
                                                          ), ',');
   end
+end
+
+if pargs["do-conv-rates"]
+  println("αs via std = $(convergence_rates(L1_error_std, results_std[1][:rolls]))");
+  println("αs via polya = $(convergence_rates(L1_error_polya, results_std[1][:rolls]))");
+  println("αs via umb = $(convergence_rates(L1_err_umb_std, results_std[1][:rolls]))");
+  println("αs via gu = $(convergence_rates(L1_err_umb_polya, results_std[1][:rolls]))");
 end
 
 if pargs["do-plots"]

@@ -1,3 +1,6 @@
+using GLM
+using DataFrames
+
 @everywhere import Base.+;
 
 @everywhere function (+)(d1::Dict, d2::Dict)
@@ -67,4 +70,17 @@ function post_process_main_runs(results_std, results_polya, pargs; kwargs...)
     end
   end
   return L1_error_std, L1_error_polya;
+end
+
+function convergence_rates(error_table, rolls; stars=Dict())
+  αs = Dict();
+  log_rolls = map(log, rolls);
+  for (k, v) in error_table
+    log_y = map(log, v);
+    d = (haskey(stars, k)) ? stars[k] : 1.0;
+    data = DataFrame(X = log_rolls, Y = log_y / d);
+    fit = lm(@formula(Y ~ X), data);
+    αs[k] = coef(fit)[2];
+  end
+  return αs;
 end
