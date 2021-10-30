@@ -25,6 +25,9 @@ default_settings = ArgParseSettings();
   "--do-trajectory"
     help = "create a data file of the chain trajectory"
     action = :store_true
+  "--do-conv-rates"
+    help = "calculate convergence rates"
+    action = :store_true
   "--orbit"
     help = "exploit underlying discrete symmetry by taking orbits during trial moves"
     action = :store_true

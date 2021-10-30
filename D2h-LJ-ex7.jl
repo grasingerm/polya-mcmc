@@ -27,7 +27,7 @@ s = ArgParseSettings();
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "(args::Any) -> [0.0; 0.0; 0.0]"
+    default = "(args::Any) -> [rand(Uniform(-args[\"len-x\"], args[\"len-x\"])), rand(Uniform(-args[\"len-y\"], args[\"len-y\"])), rand(Uniform(-args[\"len-z\"], args[\"len-z\"]))]"
   "--umbrella-sigma-a"
     help = "umbrella weight width"
     arg_type = Float64
@@ -250,18 +250,24 @@ latvecs = [
             ];
 U = (x) -> sum(map(v -> LJ(ϵ, σ, x - v), latvecs)) - dot(f, x);
 meq = 25000;
+
+ϵσ = 1e-2*(2^(1/6))*σ;
+int_xs = [ [-a+ϵσ; -ϵσ], [ϵσ; a-ϵσ] ];
+int_ys = [ [-b+ϵσ; -ϵσ], [ϵσ; b-ϵσ] ];
+int_zs = [ [-c+ϵσ; -ϵσ], [ϵσ; c-ϵσ] ];
 (Zquad, Zquad_err) = hcubature(x -> exp(-U(x) / kT), [-a, -b, -c], [a, b, c]; maxevals=meq);
 (xquad, xquad_err) = hcubature(3, (x, v) -> (v[:] = x*exp(-U(x) / kT) / Zquad), [-a, -b, -c], [a, b, c]; maxevals=meq);
-(Uquad, Uquad_err) = (
-                      collect(hcubature(x -> U(x)*exp(-U(x) / kT) / Zquad, [0, -b, -c], [a, b, c]; maxevals=meq)) +
-                      collect(hcubature(x -> U(x)*exp(-U(x) / kT) / Zquad, [-a, -b, -c], [0, b, c]; maxevals=meq))
+(Uquad, Uquad_err) = sum([
+                          collect(hcubature(x -> U(x)*exp(-U(x) / kT) / Zquad, [int_x[1], int_y[1], int_z[1]], [int_x[2], int_y[2], int_z[2]]; maxevals=meq))
+                          for int_x in int_xs, int_y in int_ys, int_z in int_zs
+                     ]
                      );
 (x2quad, x2quad_err) = hcubature(3, (x, v) -> (v[:] = x .* x *exp(-U(x) / kT) / Zquad), [-a, -b, -c], [a, b, c]; maxevals=meq);
-(U2quad, U2quad_err) = (
-                        collect(hcubature(x -> (U(x)^2)*exp(-U(x) / kT) / Zquad, [0, -b, -c], [a, b, c]; maxevals=meq)) +
-                        collect(hcubature(x -> (U(x)^2)*exp(-U(x) / kT) / Zquad, [-a, -b, -c], [0, b, c]; maxevals=meq))
+(U2quad, U2quad_err) = sum([
+                          collect(hcubature(x -> (U(x)^2)*exp(-U(x) / kT) / Zquad, [int_x[1], int_y[1], int_z[1]], [int_x[2], int_y[2], int_z[2]]; maxevals=meq))
+                          for int_x in int_xs, int_y in int_ys, int_z in int_zs
+                     ]
                      );
-
 idx = rand(1:pargs["num-runs"]);
 @info "std ar = $(results_std[idx][:ar])";
 @info "polya ar = $(results_polya[idx][:ar])";

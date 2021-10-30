@@ -10,7 +10,9 @@ for name in [
              "Logging",
              "Cubature",
              "Logging",
-             "ParallelDataTransfer"
+             "ParallelDataTransfer",
+             "GLM",
+             "DataFrames"
             ]
 
   Pkg.add(name);

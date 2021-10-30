@@ -19,11 +19,11 @@ s = ArgParseSettings();
   "--charge", "-q"
     help = "charge of ion"
     arg_type = Float64
-    default = 5e-2
+    default = 1.0
   "--x0", "-X"
     help = "initial configuration"
     arg_type = String
-    default = "(args::Any) -> [0.0; 0.0; 0.0]"
+    default = "(args::Any) -> [rand(Uniform(-args[\"len-x\"], args[\"len-x\"])), rand(Uniform(-args[\"len-y\"], args[\"len-y\"])), rand(Uniform(-args[\"len-z\"], args[\"len-z\"]))]"
   "--umbrella-sigma-a"
     help = "umbrella weight width"
     arg_type = Float64
@@ -310,6 +310,12 @@ if pargs["do-csvs"]
   end
 end
 
+if pargs["do-conv-rates"]
+  println("αs via std = $(convergence_rates(L1_error_std, results_std[1][:rolls]))");
+  println("αs via polya = $(convergence_rates(L1_error_polya, results_std[1][:rolls]))");
+  println("αs via umb = $(convergence_rates(L1_err_umb_std, results_std[1][:rolls]))");
+  println("αs via gu = $(convergence_rates(L1_err_umb_polya, results_std[1][:rolls]))");
+end
 
 if pargs["do-plots"]
   idx = rand(1:pargs["num-runs"]);
