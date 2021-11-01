@@ -11,8 +11,8 @@ end
 HOME = "/home/mgrasing"
 dryrun = false;
 fmt(x) = @sprintf("%06d", round(Int, 1e3*x));
-nsteps = convert(Int, 1e5);
-nruns = convert(Int, 1e1);
+nsteps = convert(Int, 1e6);
+nruns = convert(Int, 1e2);
 @show nsubprocs = if length(ARGS) > 1
   eval(Meta.parse(ARGS[2]));
 else
@@ -52,11 +52,9 @@ open(joinpath(workdir, "refl-conv.csv"), "w") do w
                end
              end
            end
-           @show max_αs
-           @show map(k -> max_αs[k], ks)
            return hcat([case[:b] case[:f]], transpose(map(k -> max_αs[k], ks)));
        end, cases);
-  writedlm(w, vcat(hcat(["b" "f"], ks), rows...), ',');
+  writedlm(w, vcat(hcat(["b" "f"], permutedims(ks)), rows...), ',');
 end
 
 #############################################################################
@@ -91,5 +89,5 @@ open(joinpath(workdir, "trans-conv.csv"), "w") do w
          end       
          return hcat([case[:n] case[:f]], transpose(map(k -> max_αs[k], ks)));
        end, cases);
-  writedlm(w, vcat(hcat(["n" "f"], ks), rows...), ',');
+  writedlm(w, vcat(hcat(["n" "f"], permutedims(ks)), rows...), ',');
 end
