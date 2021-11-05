@@ -33,6 +33,7 @@ cases = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex2: $(length(cases))");
+ks = ["std", "umb", "polya", "gu"];
 open(joinpath(workdir, "trans-conv.csv"), "w") do w
   rows = pmap(case -> begin;
                 command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -R $nruns -N $nsteps -a $(case[:a]) -n 4 --kT 1.0 -f $(case[:f]) --verbose 2 --do-conv-rates`
