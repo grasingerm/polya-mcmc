@@ -1,6 +1,6 @@
 using Distributed;
-using DelimitedFiles;
-using Glob;
+@everywhere using DelimitedFiles;
+@everywhere using Glob;
 @everywhere using Printf;
 
 @show workdir = if length(ARGS) > 0
@@ -28,8 +28,10 @@ cases = [
               :q => q,
               :f => f,
              )
-         for q in 1.0:0.5:10.0,
-             f in 0.0:0.5:9.0
+         #for q in 1.0:0.5:10.0,
+         #    f in 0.0:0.5:9.0
+         for q in 1.0:0.5:2.0,
+             f in 0.0:0.5:1.0
         ];
 cases = reshape(cases, length(cases));
 
