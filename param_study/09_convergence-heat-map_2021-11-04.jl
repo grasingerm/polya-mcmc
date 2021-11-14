@@ -51,7 +51,7 @@ open(joinpath(workdir, "trans-conv.csv"), "w") do w
              end
            end
          end       
-         return hcat([case[:n] case[:f]], transpose(map(k -> max_αs[k], ks)));
+         return hcat([case[:a] case[:f]], transpose(map(k -> max_αs[k], ks)));
        end, cases);
-  writedlm(w, vcat(hcat(["n" "f"], permutedims(ks)), rows...), ',');
+  writedlm(w, vcat(hcat(["a" "f"], permutedims(ks)), rows...), ',');
 end
