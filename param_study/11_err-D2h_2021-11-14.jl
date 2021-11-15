@@ -43,16 +43,29 @@ open(joinpath(workdir, "D2h-err.csv"), "w") do w
   rows = pmap(case -> begin;
            subdir = "q-$(round(Int, case[:q]*1000))_f-$(round(Int, case[:f]*1000))";
            mkpath(joinpath(workdir, subdir));
-           command = `julia -O 3 -p $nsubprocs "D2h-ex6.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates --do-csvs --outdir $(joinpath(workdir, subdir))`
-           output = read(command, String);
+           if !isfile(joinpath(workdir, subdir, "L1_Urolling.csv"))
+             println("Running $case");
+             command = `julia -O 3 -p $nsubprocs "D2h-ex6.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates --do-csvs --outdir $(joinpath(workdir, subdir))`
+             output = read(command, String);
+           else
+             println("$case already run");
+           end
            errs = Dict();
            for datafile in readdir(glob"L1*.csv", joinpath(workdir, subdir))
+             chunks = split(datafile, "_");
+             star = if startswith(chunks[end], "U2")
+                      (case[:q])^2;
+                    elseif startswith(chunks[end], "U")
+                      case[:q];
+                    elseif startswith(chunks[end], "x")
+                      1.0;
+                    end
              data = readdlm(datafile, ',');
              for (k, v) in colidxs
                if haskey(errs, k)
-                 push!(errs[k], data[end, v]);
+                 push!(errs[k] / star, data[end, v]);
                else
-                 errs[k] = [data[end, v]];
+                 errs[k] = [data[end, v] / star];
                end
              end
            end
