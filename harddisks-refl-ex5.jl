@@ -53,6 +53,8 @@ pargs = src_include("parse_args.jl");
   orbf = (pargs["orbit"]) ? x -> rand([-1; 1])*x : x -> x;
 
   nacc = 0;
+  natt = 0;
+  nacc_total = 0;
   xtotal = sum(x);
   xrolling = Float64[];
   Ucurr = U(x);
@@ -78,13 +80,15 @@ pargs = src_include("parse_args.jl");
       x[:] = xtrial[:];
       Ucurr = Utrial;
       nacc += 1;
+      nacc_total += 1;
     end
+    natt += 1;
 
     xtotal += sum(x);
     Utotal += Ucurr;
     x2total += dot(x, x);
     U2total += Ucurr*Ucurr;
-    ar = nacc / s;
+    ar = nacc_total / s;
 
     if s % stepout == 0
       push!(rolls, s);
@@ -106,13 +110,17 @@ pargs = src_include("parse_args.jl");
         pargs["step-adjust-scale"] != 1.0 &&
         s % pargs["steps-per-adjust"] == 0
        ) # adjust step size?
-       ar = nacc / s;
+       ar = nacc / natt;
        if (ar > pargs["step-adjust-ub"])
          @info "acceptance ratio is high; increasing step size";
          xstep *= pargs["step-adjust-scale"];
+         nacc = 0;
+         natt = 0;
        elseif ar < pargs["step-adjust-lb"]
          @info "acceptance ratio is low; decreasing step size";
          xstep /= pargs["step-adjust-scale"];
+         nacc = 0;
+         natt = 0;
        end
        dx_dist = Uniform(-xstep, xstep);
     end
@@ -124,7 +132,7 @@ pargs = src_include("parse_args.jl");
               :x2avg => x2total / (n*nsteps), :U2avg => U2total / nsteps,
               :x2rolling => x2rolling, :U2rolling => U2rolling,
               :xstd_rolling => xstd_rolling, :Ustd_rolling => Ustd_rolling,
-              :rolls => rolls, :ar => nacc / nsteps);
+              :rolls => rolls, :ar => nacc_total / nsteps);
 
 end
 
