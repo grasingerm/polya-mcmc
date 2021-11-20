@@ -62,9 +62,9 @@ It interacts with atoms in the lattice (which are idealized as fixed) via an ele
 The ion can move in 3 dimensional Euclidean space and the electrostatic energy landscape is described by a D<sub>2h</sub> symmetry (see Tinkham's text on group theory).
 
 ## TODO
-- [ ] Plot convergence rates using something more publication friendly--like gnuplot
-- [ ] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
-- [ ] Implement noninteracting polymer chain with orientational energy
-- [ ] Implement interacting polymer chain with orientational energy; use clustering?
-- [ ] Question: will clustering type algorithms work for fluid--solid transitions? There must be something in the literature
+- [x] Plot convergence rates using something more publication friendly--like gnuplot
+- [x] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
+- [x] Implement noninteracting polymer chain with orientational energy
+- [x] Implement interacting polymer chain with orientational energy; use clustering?
+- [?] Question: will clustering type algorithms work for fluid--solid transitions? There must be something in the literature
 - [ ] Write descriptions for each of the examples; add page numbers when (if?) manuscript is ever published/posted
