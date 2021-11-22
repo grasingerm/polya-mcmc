@@ -4,7 +4,7 @@ Symmetry, discrete groups, and Markov chain Monte Carlo methods.
 ## Introduction
 Conceptually, the idea here is to leverage discrete symmetries, 
 or Hamiltonians which have a kind of semi-discrete symmetry, in order to perform 
-efficient Markov cain Monte Carlo sampling of energy landscapes with multiple,
+efficient Markov chain Monte Carlo sampling of energy landscapes with multiple,
 separated energy wells--a kind of hybrid computational statistical physics and 
 group theory study.
 Instead of writing a single modular, user- and developer-friendly code, 
@@ -36,7 +36,7 @@ This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small e
 It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
 
 ### trans-ex2.jl
-This example is a 1 DOF system with discrete translational semi-symmetries (_f_ small enough).
+This example is a 1 DOF system with discrete translational semi-symmetry (_f_ small enough).
 It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
 
 ### D2-ex3.jl
