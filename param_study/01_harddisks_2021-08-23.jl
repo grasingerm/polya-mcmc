@@ -46,7 +46,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex5: $(length(cases))");
-exoutdir = joinpath(workdir, "harddisks-refl-ex5");
+exoutdir = joinpath(workdir, "ex5-harddisks-refl");
 mkpath(exoutdir);
 map(pair -> begin;
        name, case = pair;
@@ -54,7 +54,7 @@ map(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs harddisks-refl-ex5.jl -a $(case[:a]) -b $(case[:b]) --num-disks $(case[:nd]) --disk-diameter $(case[:dd]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs ex5-harddisks-refl.jl -a $(case[:a]) -b $(case[:b]) --num-disks $(case[:nd]) --disk-diameter $(case[:dd]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else

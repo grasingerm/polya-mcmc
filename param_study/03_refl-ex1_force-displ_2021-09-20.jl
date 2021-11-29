@@ -27,7 +27,7 @@ for f in vcat(collect(0.001:0.001:0.005), collect(0.01:0.01:0.05),
   mkpath(local_outdir);
   outfile = joinpath(local_outdir, "out.txt");
   if !dryrun && !isfile(outfile)
-    command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -a 1.0 -b 8.0 --x0 "(::Any) -> 0.0" -f $f --umbrella-b 2.0 --dx 1.0 -R 100 -N 1000000 --stepout 500 --kT 1.0 --verbose 3 --outdir $(local_outdir) --do-csvs`
+    command = `julia -O 3 -p $nsubprocs "ex1-refl.jl" -a 1.0 -b 8.0 --x0 "(::Any) -> 0.0" -f $f --umbrella-b 2.0 --dx 1.0 -R 100 -N 1000000 --stepout 500 --kT 1.0 --verbose 3 --outdir $(local_outdir) --do-csvs`
     output = read(command, String);
     write(outfile, output);
   else

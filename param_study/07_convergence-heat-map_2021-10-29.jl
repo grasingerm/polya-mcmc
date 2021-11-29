@@ -37,7 +37,7 @@ println("total number of cases to run for ex1: $(length(cases))");
 mkpath(workdir);
 open(joinpath(workdir, "refl-conv.csv"), "w") do w
   rows = pmap(case -> begin;
-           command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -R $nruns -N $nsteps -a 1.0 -b $(case[:b]) --kT 1.0 -f $(case[:f]) --verbose 2 --do-conv-rates`
+           command = `julia -O 3 -p $nsubprocs "ex1-refl.jl" -R $nruns -N $nsteps -a 1.0 -b $(case[:b]) --kT 1.0 -f $(case[:f]) --verbose 2 --do-conv-rates`
            output = read(command, String);
            max_αs = Dict();
            for line in split(output, '\n')
@@ -72,7 +72,7 @@ cases = reshape(cases, length(cases));
 println("total number of cases to run for ex2: $(length(cases))");
 open(joinpath(workdir, "trans-conv.csv"), "w") do w
   rows = pmap(case -> begin;
-         command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -R $nruns -N $nsteps -a 1.0 -n $(case[:n]) --kT 1.0 -f $(case[:f]) --verbose 2 --do-conv-rates`
+         command = `julia -O 3 -p $nsubprocs "ex2-trans.jl" -R $nruns -N $nsteps -a 1.0 -n $(case[:n]) --kT 1.0 -f $(case[:f]) --verbose 2 --do-conv-rates`
          output = read(command, String);
          max_αs = Dict();
          for line in split(output, '\n')

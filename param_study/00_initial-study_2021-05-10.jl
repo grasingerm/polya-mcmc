@@ -55,7 +55,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex1: $(length(cases))");
-exoutdir = joinpath(workdir, "refl-ex1");
+exoutdir = joinpath(workdir, "ex1-refl");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -63,7 +63,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "ex1-refl.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -107,7 +107,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex2: $(length(cases))");
-exoutdir = joinpath(workdir, "trans-ex2");
+exoutdir = joinpath(workdir, "ex2-trans");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -115,7 +115,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
+         command = `julia -O 3 -p $nsubprocs "ex2-trans.jl" -a $(case[:a]) -n $(case[:n]) --x0 $(case[:x0]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
          output = read(command, String);
          write(outfile, output);
        else
@@ -164,7 +164,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex3: $(length(cases))");
-exoutdir = joinpath(workdir, "D2-ex3");
+exoutdir = joinpath(workdir, "ex3-D2");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -172,7 +172,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "D2-ex3.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "ex3-D2.jl" -k $(case[:k]) -l $(case[:l]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -215,7 +215,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex4: $(length(cases))");
-exoutdir = joinpath(workdir, "rosenbrock-ex4");
+exoutdir = joinpath(workdir, "ex4-rosenbrock");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -223,7 +223,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "rosenbrock-ex4.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "ex4-rosenbrock.jl" -a $(case[:a]) -b $(case[:b]) --x0 $(case[:x0]) -f "[$(case[:f]); $(case[:g])]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else

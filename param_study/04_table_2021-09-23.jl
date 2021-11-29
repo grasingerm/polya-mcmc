@@ -43,7 +43,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex1: $(length(cases))");
-exoutdir = joinpath(workdir, "refl-ex1");
+exoutdir = joinpath(workdir, "ex1-refl");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -51,7 +51,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "refl-ex1.jl" -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) --kT $(case[:kT]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs "ex1-refl.jl" -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) --kT $(case[:kT]) -f $(case[:f]) --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -82,7 +82,7 @@ names = [
         ];
 
 println("total number of cases to run for ex2: $(length(cases))");
-exoutdir = joinpath(workdir, "trans-ex2");
+exoutdir = joinpath(workdir, "ex2-trans");
 mkpath(exoutdir);
 pmap(pair -> begin;
        name, case = pair;
@@ -90,7 +90,7 @@ pmap(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs "trans-ex2.jl" -R $nruns -N $nsteps -a $(case[:a]) -n $(case[:n]) --kT $(case[:kT]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
+         command = `julia -O 3 -p $nsubprocs "ex2-trans.jl" -R $nruns -N $nsteps -a $(case[:a]) -n $(case[:n]) --kT $(case[:kT]) -f $(case[:f]) --outdir $(local_outdir) --do-csvs --verbose 2`
          output = read(command, String);
          write(outfile, output);
        else
@@ -129,7 +129,7 @@ names = [
 cases = reshape(cases, length(cases));
 
 println("total number of cases to run for ex6: $(length(cases))");
-exoutdir = joinpath(workdir, "D2h-ex6");
+exoutdir = joinpath(workdir, "ex6-D2h");
 mkpath(exoutdir);
 map(pair -> begin;
        name, case = pair;
@@ -137,7 +137,7 @@ map(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs D2h-ex6.jl --x0 "(args) -> rand(Uniform(-1, 1), 3)" -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) -c $(case[:c]) --charge $(case[:q]) -f "[$(case[:f]); 0.0; 0.0]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs ex6-D2h.jl --x0 "(args) -> rand(Uniform(-1, 1), 3)" -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) -c $(case[:c]) --charge $(case[:q]) -f "[$(case[:f]); 0.0; 0.0]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else
@@ -187,7 +187,7 @@ map(pair -> begin;
        mkpath(local_outdir);
        outfile = joinpath(local_outdir, "out.txt");
        if !dryrun && !isfile(outfile)
-         command = `julia -O 3 -p $nsubprocs D2h-LJ-ex7.jl -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) -c $(case[:c]) --eps $(case[:eps]) --sigma $(case[:sigma]) -f "[$(case[:f]); 0.0; 0.0]" --verbose 2 --outdir $(local_outdir) --do-csvs`
+         command = `julia -O 3 -p $nsubprocs ex7-D2h-LJ.jl -R $nruns -N $nsteps -a $(case[:a]) -b $(case[:b]) -c $(case[:c]) --eps $(case[:eps]) --sigma $(case[:sigma]) -f "[$(case[:f]); 0.0; 0.0]" --verbose 2 --outdir $(local_outdir) --do-csvs`
          output = read(command, String);
          write(outfile, output);
        else

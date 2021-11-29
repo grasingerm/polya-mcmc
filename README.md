@@ -31,22 +31,22 @@ To obtain a list of program and simulation parameters, use
 
     julia <example-file-name.jl> --help
 
-### refl-ex1.jl
+### ex1-refl.jl
 This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small enough).
 It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
 
-### trans-ex2.jl
+### ex2-trans.jl
 This example is a 1 DOF system with discrete translational semi-symmetry (_f_ small enough).
 It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
 
-### D2-ex3.jl
+### ex3-D2.jl
 This example is a 2 DOF system with D<sub>2</sub> semi-symmetry.
 
-### rosenbrock-ex4.jl
+### ex4-rosenbrock.jl
 This example is a toy 2 DOF system which has a notoriously difficult energy landscape.
 It has a semi-symmetry x &#8594; -x, which is strictly symmetric when a &#8594; 0.
 
-### harddisks-refl-ex5.jl
+### ex5-harddisks-refl.jl
 This is the first example involving interacting particles.
 Here we have multiple particles in the same energy landscape with reflection symmetry as seen in refl-ex1.jl.
 The particles each have a single degree of freedom and are hard disks (interact via an excluded volume potential).
@@ -55,7 +55,7 @@ This example shows the ways in which this method can be generalized to more comp
 It is also the first example which resides in a high dimensional space (scales linearly with the number of disks), which motivates the necessity for stochastic integration.
 That is, all of the previous examples can be readily solved using quadrature, but quadrature would struggle for this system when there is a large number of particles.
 
-### D2h-ex6.jl
+### ex6-D2h.jl
 This example represents another push toward more realistic physical systems.
 Here we imagine an ion in a crystalline lattice.
 It interacts with atoms in the lattice (which are idealized as fixed) via an electrostatic Coloumb potential.

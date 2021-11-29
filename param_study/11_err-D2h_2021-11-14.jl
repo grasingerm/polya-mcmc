@@ -45,7 +45,7 @@ open(joinpath(workdir, "D2h-err.csv"), "w") do w
            mkpath(joinpath(workdir, subdir));
            if !isfile(joinpath(workdir, subdir, "L1_Urolling.csv"))
              println("Running $case");
-             command = `julia -O 3 -p $nsubprocs "D2h-ex6.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates --do-csvs --outdir $(joinpath(workdir, subdir))`
+             command = `julia -O 3 -p $nsubprocs "ex6-D2h.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates --do-csvs --outdir $(joinpath(workdir, subdir))`
              output = read(command, String);
            else
              println("$case already run");

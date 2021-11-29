@@ -37,7 +37,7 @@ println("total number of cases to run for ex1: $(length(cases))");
 mkpath(workdir);
 open(joinpath(workdir, "D2h-conv.csv"), "w") do w
   rows = pmap(case -> begin;
-           command = `julia -O 3 -p $nsubprocs "D2h-ex6.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates`
+           command = `julia -O 3 -p $nsubprocs "ex6-D2h.jl" -R $nruns -N $nsteps -a 1.0 -b 1.0 -c 1.0 --kT 1.0 -f "[$(case[:f]),$(case[:f]),$(case[:f])] / sqrt(3)" -q $(case[:q]) --verbose 2 --do-conv-rates`
            output = read(command, String);
            max_αs = Dict();
            for line in split(output, '\n')
