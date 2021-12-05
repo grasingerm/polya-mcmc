@@ -7,8 +7,7 @@ or Hamiltonians which have a kind of semi-discrete symmetry, in order to perform
 efficient Markov chain Monte Carlo sampling of energy landscapes with multiple,
 separated energy wells--a kind of hybrid computational statistical physics and 
 group theory study.
-Instead of writing a single modular, user- and developer-friendly code, 
-(which would require time, patience, skill, and planning--none of which I have)
+Instead of writing a single modular, user- and developer-friendly code,
 I've opted to put together many quick and simple examples.
 Practically, the main goal here is to further research, not develop software. 
 There are plenty of Monte Carlo codes out there. The primary goal of this code is to 
