@@ -1,5 +1,6 @@
 # polya-mcmc
 Symmetry, discrete groups, and Markov chain Monte Carlo methods.
+See https://arxiv.org/abs/2205.00028 for the manuscript.
 
 ## Introduction
 Conceptually, the idea here is to leverage discrete symmetries, 
@@ -33,12 +34,12 @@ To obtain a list of program and simulation parameters, use
 ### ex1-refl.jl
 This example is a 1 DOF system with a reflection semi-symmetry (when _f_ small enough).
 It is a double well potential given by _U = a x<sup>4</sup> - b x<sup>2</sup> - f x_.
-This example is discussed in detail in section III of the manuscript (in preparation).
+This example is discussed in detail in section III of the manuscript.
 
 ### ex2-trans.jl
 This example is a 1 DOF system with discrete translational semi-symmetry (_f_ small enough).
 It is a periodic potential consisting of many wells given by _U = a_ cos(_n x_) _- f x_.
-This example is discussed in detail in section IV.A of the manuscript (in preparation).
+This example is discussed in detail in section IV.A of the manuscript.
 
 ### ex3-D2.jl
 This example is a 2 DOF system with D<sub>2</sub> semi-symmetry.
@@ -61,7 +62,7 @@ This example represents another push toward more realistic physical systems.
 Here we imagine an ion in a crystalline lattice.
 It interacts with atoms in the lattice (which are idealized as fixed) via an electrostatic Coloumb potential.
 The ion can move in 3 dimensional Euclidean space and the electrostatic energy landscape is described by a D<sub>2h</sub> symmetry (see Tinkham's text on group theory).
-This example is discussed in detail in section IV.B of the manuscript (in preparation).
+This example is discussed in detail in section IV.B of the manuscript.
 
 ### ex7-D2h-LJ.jl
 Here we imagine a particle in a crystalline lattice.
@@ -73,4 +74,5 @@ The particle can move in 3 dimensional Euclidean space and the LJ energy landsca
 - [x] Derive and test exact/approximate solutions; test low-dimensional cases against quadrature
 - [x] Implement noninteracting polymer chain with orientational energy
 - [x] Implement interacting polymer chain with orientational energy; use clustering?
-- [ ] Write descriptions for each of the examples; add page numbers when (if?) manuscript is ever published/posted
+- [x] Write descriptions for each of the examples; add page numbers when (if?) manuscript is ever published/posted
+- [ ] Create an example where the group action involves rescaling, e.g. U<sub>G</sub> = a sin(b / x)
